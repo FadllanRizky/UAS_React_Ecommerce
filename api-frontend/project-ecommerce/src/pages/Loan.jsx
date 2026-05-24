@@ -10,25 +10,35 @@ import {
   Coins, 
   FileText, 
   ArrowUpRight, 
-  HelpCircle 
+  HelpCircle,
+  User,
+  CreditCard,
+  Upload
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-export default function Loan() {
+// 🔥 Terima prop dari App.jsx untuk auto-select data gadget
+export default function Loan({ autoSelectProduct, clearAutoSelect }) {
   const { token } = useAuth();
 
   const [loans, setLoans] = useState([]);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Form input untuk pinjaman cash dinamis biar makin mantap, bos
+  // Form input pinjaman cash & produk
   const [cashAmount, setCashAmount] = useState(1000000);
   const [tenureMonth, setTenureMonth] = useState(6);
+
+  // State Data Identitas & Validasi Metode Pembayaran
+  const [fullNameApplicant, setFullNameApplicant] = useState('');
+  const [nik, setNik] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('DANA');
+  const [idCardFile, setIdCardFile] = useState(null);
 
   const loadLoans = async () => {
     try {
       const res = await getMyLoans(token);
-      // Antisipasi data langsung array atau di dalam response.data.rows
       let extractedLoans = [];
       if (Array.isArray(res.data)) {
         extractedLoans = res.data;
@@ -57,13 +67,62 @@ export default function Loan() {
     });
   }, [token]);
 
-  // 🔥 PINJAM CASH
+  // 🔥 SINKRONISASI AUTO-SELECT VIA PROP DATA (MURNI STATE MBRUR STORE)
+  useEffect(() => {
+    if (autoSelectProduct && products.length > 0) {
+      // Cari kecocokan data produk dari database untuk memastikan ID valid
+      const targetProduct = products.find(
+        p => (p.id || p._id) === (autoSelectProduct.id || autoSelectProduct._id)
+      );
+      
+      if (targetProduct) {
+        setSelectedProduct(targetProduct);
+      } else {
+        setSelectedProduct(autoSelectProduct);
+      }
+
+      // 🔥 Langsung clear biar kalau user ganti tab manual form-nya tidak ngunci
+      if (clearAutoSelect) {
+        clearAutoSelect();
+      }
+    }
+  }, [autoSelectProduct, products, clearAutoSelect]);
+
+  // Validasi Utama Sebelum Hit API
+  const validateForm = () => {
+    if (!fullNameApplicant || !nik || !phoneNumber) {
+      Swal.fire({
+        title: 'Data Belum Lengkap!',
+        text: 'Mohon isi Nama Lengkap, NIK, dan No Whatsapp Terlebih dahulu, bos!',
+        icon: 'warning',
+        background: '#111827',
+        color: '#FFF',
+        confirmButtonColor: '#EF4444'
+      });
+      return false;
+    }
+    if (!idCardFile) {
+      Swal.fire({
+        title: 'Foto KTP Kosong!',
+        text: 'Bos wajib mengupload foto fisik KTP untuk proses verifikasi admin!',
+        icon: 'warning',
+        background: '#111827',
+        color: '#FFF',
+        confirmButtonColor: '#EF4444'
+      });
+      return false;
+    }
+    return true;
+  };
+
+  // PINJAM CASH
   const handleCash = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     
     Swal.fire({
       title: 'Ajukan Pinjaman Cash?',
-      text: `Apakah bos yakin ingin mengajukan pinjaman dana sebesar Rp ${Number(cashAmount).toLocaleString('id-ID')}?`,
+      text: `Apakah bos yakin ingin mengajukan dana Rp ${Number(cashAmount).toLocaleString('id-ID')} via ${paymentMethod}?`,
       icon: 'question',
       showCancelButton: true,
       background: '#111827',
@@ -77,29 +136,36 @@ export default function Loan() {
         try {
           const monthlyPayment = Math.round((cashAmount / tenureMonth) + (cashAmount * 0.05));
           
-          await createLoan({
-            loan_amount: Number(cashAmount),
-            tenure_month: Number(tenureMonth),
-            interest_rate: 5,
-            monthly_payment: monthlyPayment,
-            type: 'cash',
-            reason: 'Modal usaha bos'
-          }, token);
+          const formData = new FormData();
+          formData.append('type', 'cash');
+          formData.append('loan_amount', Number(cashAmount));
+          formData.append('tenure_month', Number(tenureMonth));
+          formData.append('interest_rate', 5);
+          formData.append('monthly_payment', monthlyPayment);
+          formData.append('reason', 'Modal usaha bos');
+          formData.append('full_name_applicant', fullNameApplicant);
+          formData.append('nik', nik);
+          formData.append('phone_number', phoneNumber);
+          formData.append('payment_method', paymentMethod);
+          formData.append('id_card', idCardFile);
+
+          await createLoan(formData, token);
 
           Swal.fire({
             title: 'Pengajuan Sukses!',
-            text: 'Pinjaman cash berhasil masuk ke database server, bos!',
+            text: 'Pinjaman cash & berkas KTP berhasil dikirim ke antrean admin, bos!',
             icon: 'success',
             background: '#111827',
             color: '#FFF',
             confirmButtonColor: '#10B981'
           });
           
+          resetForm();
           loadLoans();
         } catch (error) {
           Swal.fire({
             title: 'Gagal Mengajukan!',
-            text: error.response?.data?.message || 'Gagal menyimpan data ke backend.',
+            text: error.response?.data?.error || 'Gagal menyimpan data ke backend.',
             icon: 'error',
             background: '#111827',
             color: '#FFF',
@@ -110,7 +176,7 @@ export default function Loan() {
     });
   };
 
-  // 🔥 PINJAM PRODUK
+  // PINJAM PRODUK
   const handleProduct = async () => {
     if (!selectedProduct) {
       Swal.fire({
@@ -123,12 +189,13 @@ export default function Loan() {
       });
       return;
     }
+    if (!validateForm()) return;
 
     const displayName = selectedProduct.description || selectedProduct.name || 'Premium Product';
 
     Swal.fire({
       title: 'Pinjam Gadget Premium?',
-      text: `Ajukan peminjaman aset unit ${displayName}?`,
+      text: `Ajukan peminjaman unit ${displayName} via pencairan ${paymentMethod}?`,
       icon: 'question',
       showCancelButton: true,
       background: '#111827',
@@ -142,17 +209,24 @@ export default function Loan() {
         try {
           const productId = selectedProduct.id || selectedProduct._id;
           
-          await createLoan({
-            product_id: productId,
-            tenure_month: 6,
-            interest_rate: 5,
-            monthly_payment: Math.round((selectedProduct.price || 0) / 6),
-            type: 'product'
-          }, token);
+          const formData = new FormData();
+          formData.append('type', 'product');
+          formData.append('product_id', productId);
+          formData.append('product_price', selectedProduct.price || 0);
+          formData.append('tenure_month', 6);
+          formData.append('interest_rate', 5);
+          formData.append('reason', 'Peminjaman inventaris kerja');
+          formData.append('full_name_applicant', fullNameApplicant);
+          formData.append('nik', nik);
+          formData.append('phone_number', phoneNumber);
+          formData.append('payment_method', paymentMethod);
+          formData.append('id_card', idCardFile);
+
+          await createLoan(formData, token);
 
           Swal.fire({
             title: 'Barang Diajukan!',
-            text: 'Pengajuan aset produk berhasil tersimpan di database.',
+            text: 'Pengajuan produk & berkas identitas sukses masuk database.',
             icon: 'success',
             background: '#111827',
             color: '#FFF',
@@ -160,11 +234,12 @@ export default function Loan() {
           });
 
           setSelectedProduct(null);
+          resetForm();
           loadLoans();
         } catch (error) {
           Swal.fire({
             title: 'Error Database!',
-            text: error.response?.data?.message || 'Ada kendala input data.',
+            text: error.response?.data?.error || 'Ada kendala input data.',
             icon: 'error',
             background: '#111827',
             color: '#FFF',
@@ -175,8 +250,15 @@ export default function Loan() {
     });
   };
 
+  const resetForm = () => {
+    setFullNameApplicant('');
+    setNik('');
+    setPhoneNumber('');
+    setIdCardFile(null);
+  };
+
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
+    <div className="space-y-10 animate-in fade-in duration-500 text-slate-200">
       
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/60 pb-6">
@@ -185,13 +267,102 @@ export default function Loan() {
             <CalendarRange className="text-emerald-400" size={26} /> PANEL TRANSAKSI & PINJAMAN
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Ajukan permodalan cash usaha atau pinjam inventaris gadget premium langsung ke database, bos.
+            Lengkapi berkas identitas KTP dan pilih payment gateway e-wallet / bank lokal pilihanmu bos.
           </p>
         </div>
         <div className="flex gap-3 bg-slate-900 border border-slate-800 p-2 rounded-xl text-xs text-slate-400">
           <span className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded-md font-mono">
-            Token Verified
+            Secure Encryption Verified
           </span>
+        </div>
+      </div>
+
+      {/* FORM DATA DIRI & FILE UPLOAD KTP */}
+      <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <User className="text-emerald-400" size={18} />
+          <h3 className="text-sm font-black text-white uppercase tracking-wider">Langkah 1: Lengkapi Berkas Pengajuan Fisik</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div>
+            <label className="text-[10px] uppercase tracking-widest font-bold text-slate-400 block mb-1.5">Nama Lengkap Sesuai KTP</label>
+            <input 
+              type="text" 
+              value={fullNameApplicant} 
+              onChange={e => setFullNameApplicant(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 transition-colors text-white"
+              placeholder="Masukkan nama asli" 
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-widest font-bold text-slate-400 block mb-1.5">Nomor NIK KTP (16 Digit)</label>
+            <input 
+              type="text" 
+              maxLength={16}
+              value={nik} 
+              onChange={e => setNik(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 transition-colors font-mono text-white" 
+              placeholder="320xxxxxxxxxxxxx"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-widest font-bold text-slate-400 block mb-1.5">No. WhatsApp Aktif</label>
+            <input 
+              type="text" 
+              value={phoneNumber} 
+              onChange={e => setPhoneNumber(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 transition-colors text-white" 
+              placeholder="08xxxxxxxxxx"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+          {/* PEMBAYARAN GATEWAY E-WALLET & BANK */}
+          <div>
+            <label className="text-[10px] uppercase tracking-widest font-bold text-slate-400 block mb-1.5">Metode Pencairan & Angsuran</label>
+            <div className="relative">
+              <CreditCard size={16} className="absolute left-3 top-3.5 text-slate-500" />
+              <select
+                value={paymentMethod}
+                onChange={e => setPaymentMethod(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-emerald-500 text-slate-200 font-bold"
+              >
+                <optgroup label="⚡ E-Wallet Platform">
+                  <option value="DANA">DANA Premium</option>
+                  <option value="OVO">OVO Cash</option>
+                  <option value="SHOPEEPAY">ShopeePay</option>
+                </optgroup>
+                <optgroup label="🏦 Bank Transfer (VA)">
+                  <option value="BCA">Bank Central Asia (BCA)</option>
+                  <option value="MANDIRI">Bank Mandiri</option>
+                  <option value="BRI">Bank Rakyat Indonesia (BRI)</option>
+                  <option value="BNI">Bank Negara Indonesia (BNI)</option>
+                  <option value="SEABANK">SeaBank Digital</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+
+          {/* UPLOAD FILE KTP */}
+          <div>
+            <label className="text-[10px] uppercase tracking-widest font-bold text-slate-400 block mb-1.5">Upload Foto KTP Asli</label>
+            <div className="border border-dashed border-slate-800 hover:border-emerald-500/40 rounded-xl p-2.5 relative bg-slate-900/40 transition-colors flex items-center justify-center cursor-pointer min-h-[46px]">
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={e => setIdCardFile(e.target.files[0])}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
+              />
+              <div className="flex items-center gap-2 text-xs">
+                <Upload size={14} className="text-slate-500" />
+                <span className="text-slate-400 font-medium">
+                  {idCardFile ? `Selected: ${idCardFile.name}` : 'Pilih file gambar KTP bos (Max 5MB)'}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -243,7 +414,7 @@ export default function Loan() {
 
           <button 
             onClick={handleCash}
-            className="w-full mt-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-emerald-950/20 flex items-center justify-center gap-2"
+            className="w-full mt-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
           >
             Cairkan Dana Sekarang <ArrowUpRight size={16} />
           </button>
@@ -304,7 +475,7 @@ export default function Loan() {
 
           <button 
             onClick={handleProduct}
-            className="w-full mt-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-cyan-950/20 flex items-center justify-center gap-2"
+            className="w-full mt-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
           >
             <Package size={16} /> Ajukan Pinjam Barang
           </button>
@@ -333,6 +504,7 @@ export default function Loan() {
                     <th className="p-4">ID Kontrak</th>
                     <th className="p-4">Jenis Kredit</th>
                     <th className="p-4">Deskripsi Aset / Dana</th>
+                    <th className="p-4">Gateway</th>
                     <th className="p-4">Tenor</th>
                     <th className="p-4 text-right">Status Verifikasi</th>
                   </tr>
@@ -354,15 +526,18 @@ export default function Loan() {
                           {isCash ? (
                             <span className="text-emerald-400">Rp {Number(l.loan_amount || 0).toLocaleString('id-ID')}</span>
                           ) : (
-                            <span>{l.products?.description || l.products?.name || l.product?.name || 'Aset Gadget Premium'}</span>
+                            <span>{l.products?.description || l.products?.name || 'Aset Gadget Premium'}</span>
                           )}
+                        </td>
+                        <td className="p-4 text-slate-400 font-bold uppercase text-xs">
+                          {l.payment_method || 'DANA'}
                         </td>
                         <td className="p-4 text-slate-400 font-medium">
                           {l.tenure_month || 6} Bulan
                         </td>
                         <td className="p-4 text-right">
-                          <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full border ${l.status === 'Approved' || l.status === 'Selesai' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
-                            <ShieldCheck size={12} /> {l.status || 'Pending Review'}
+                          <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full border ${l.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : l.status === 'rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                            <ShieldCheck size={12} /> {l.status || 'pending'}
                           </span>
                         </td>
                       </tr>

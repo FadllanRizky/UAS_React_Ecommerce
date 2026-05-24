@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { getProducts } from '../api/productApi';
+import { useAuth } from '../contexts/AuthContext'; 
 import ProductCard from '../components/ProductCard';
+import ProductDetailModal from '../components/ProductDetailModal'; 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Swal from 'sweetalert2';
 
-export default function Product({ onDetail, onAddToCart }) {
+// 🔥 Tangkap prop onAddToLoan dari App.jsx
+export default function Product({ onAddToCart, onAddToLoan }) {
+  const { token } = useAuth();
+  
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProduct, setSelectedProduct] = useState(null); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const itemsPerPage = 6; 
 
   useEffect(() => {
     getProducts()
       .then((response) => {
-        // Antisipasi jika data dibungkus di dalam response.data.rows oleh pg pool postgresql
         let extractedProducts = [];
         if (Array.isArray(response.data)) {
           extractedProducts = response.data;
@@ -26,6 +33,29 @@ export default function Product({ onDetail, onAddToCart }) {
       .catch((err) => console.error("Gagal load database produk:", err));
   }, []);
 
+  // 🔥 TRIGGER OPER DATA & PINDAH TAB KE APP.JSX
+  const handleAddToLoan = (product) => {
+    if (!token) {
+      Swal.fire({
+        title: 'Akses Ditolak',
+        text: 'Bos harus login terlebih dahulu untuk mengajukan pinjaman!',
+        icon: 'warning',
+        background: '#111827',
+        color: '#FFF',
+        confirmButtonColor: '#EF4444'
+      });
+      return;
+    }
+
+    // Tutup modal detail terlebih dahulu jika sedang terbuka
+    setIsModalOpen(false);
+
+    // 🔥 Panggil fungsi operan dari App.jsx untuk pindah halaman & kirim data produk
+    if (onAddToLoan) {
+      onAddToLoan(product);
+    }
+  };
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = products.slice(indexOfFirstItem, indexOfLastItem);
@@ -33,11 +63,7 @@ export default function Product({ onDetail, onAddToCart }) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* <div>
-        <h1 className="text-2xl font-black tracking-tight text-white">Eksplorasi Produk Realtime</h1>
-        <p className="text-xs text-slate-400 mt-1">Data langsung diambil dari database server lokal milikmu, bos.</p>
-      </div> */}
-
+      
       {products.length === 0 ? (
         <p className="text-sm text-slate-500">Tidak ada produk ditemukan di database bos.</p>
       ) : (
@@ -46,8 +72,12 @@ export default function Product({ onDetail, onAddToCart }) {
             <ProductCard 
               key={product.id || product._id} 
               product={product} 
-              onDetail={onDetail} 
+              onDetail={(p) => {
+                setSelectedProduct(p);
+                setIsModalOpen(true);
+              }} 
               onAddToCart={onAddToCart} 
+              onAddToLoan={handleAddToLoan} // 🔥 Berjalan lancar bos!
             />
           ))}
         </div>
@@ -81,6 +111,18 @@ export default function Product({ onDetail, onAddToCart }) {
           </button>
         </div>
       )}
+
+      {/* MODAL DETAIL PRODUK */}
+      <ProductDetailModal 
+        isOpen={isModalOpen}
+        product={selectedProduct}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProduct(null);
+        }}
+        onAddToCart={onAddToCart}
+        onAddToLoan={handleAddToLoan} 
+      />
     </div>
   );
 }

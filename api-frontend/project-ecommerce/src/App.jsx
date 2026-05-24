@@ -1,155 +1,107 @@
-import React, { useState } from 'react';
-import Navbar from './components/Navbar';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from './contexts/AuthContext';
 import Product from './pages/Product';
 import Loan from './pages/Loan';
-import ProductDetailModal from './components/ProductDetailModal';
-import CartModal from './components/CartModal';
+import History from './pages/History';
+import AdminDashboard from './pages/AdminDashboard';
+import LiveChatWidget from './components/LiveChatWidget';
 import AuthModal from './components/AuthModal';
-import { useAuth } from './contexts/AuthContext';
-import { createLoan } from './api/loanApi';
-import Swal from 'sweetalert2';
+import { ShoppingCart, LogOut, Wallet, LogIn } from 'lucide-react';
 
 export default function App() {
-  const { checkAuth, token } = useAuth();
-  const [activeTab, setActiveTab] = useState('products');
-  const [cart, setCart] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { user, token, logout, setIsAuthModalOpen, setAuthMode, checkAuth } = useAuth();
+  
+  const [activeTab, setActiveTab] = useState(localStorage.getItem('activeTab') || 'products');
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+  const [loanAutoSelectProduct, setLoanAutoSelectProduct] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
 
   const handleAddToCart = (product) => {
-    if (!checkAuth()) return; // Trigger SweetAlert proteksi jika belum masuk/login
-
-    setCart((prev) => {
-      const productId = product.id || product._id;
-      const existing = prev.find((item) => (item.id || item._id) === productId);
-      if (existing) {
-        return prev.map((item) => (item.id || item._id) === productId ? { ...item, quantity: item.quantity + 1 } : item);
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-
-    // Pop-up notifikasi sukses tambah ke keranjang
-    Swal.fire({
-      title: 'Berhasil Masuk Keranjang!',
-      text: `${product.name} telah berhasil ditambahkan, bos.`,
-      icon: 'success',
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 2500,
-      background: '#111827',
-      color: '#E2E8F0',
-    });
+    if (!checkAuth()) return; // Cegah aksi masuk keranjang jika belum login
+    setCart((prev) => [...prev, product]);
   };
 
-  const handleAddToLoan = (product) => {
-    if (!checkAuth()) return;
-    
-    Swal.fire({
-      title: 'Ajukan Pinjaman?',
-      text: `Apakah bos yakin ingin meminjam ${product.name}?`,
-      icon: 'question',
-      showCancelButton: true,
-      background: '#111827',
-      color: '#E2E8F0',
-      confirmButtonColor: '#10B981',
-      cancelButtonColor: '#374151',
-      confirmButtonText: 'Ya, Ajukan!',
-      cancelButtonText: 'Batal'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Menembak endpoint axios createLoan milikmu menggunakan parameter (data, token)
-        createLoan({ productId: product.id || product._id, durationDays: 14 }, token)
-          .then(() => {
-            Swal.fire({
-              title: 'Pengajuan Sukses!',
-              text: 'Permintaan peminjaman berhasil masuk ke database backend bos.',
-              icon: 'success',
-              background: '#111827',
-              color: '#FFF',
-              confirmButtonColor: '#10B981'
-            });
-          })
-          .catch((error) => {
-            Swal.fire({
-              title: 'Gagal Pengajuan!',
-              text: error.response?.data?.message || 'Ada error saat input database bos.',
-              icon: 'error',
-              background: '#111827',
-              color: '#FFF',
-              confirmButtonColor: '#EF4444'
-            });
-          });
-      }
-    });
-  };
-
-  const handleRemoveFromCart = (id) => {
-    setCart((prev) => prev.filter((item) => (item.id || item._id) !== id));
-  };
-
-  const handleCheckout = () => {
-    Swal.fire({
-      title: 'Konfirmasi Pesanan',
-      text: 'Lanjutkan checkout belanjaan premium Anda, bos?',
-      icon: 'info',
-      showCancelButton: true,
-      background: '#111827',
-      color: '#FFF',
-      confirmButtonColor: '#10B981',
-      cancelButtonColor: '#374151',
-      confirmButtonText: 'Selesaikan Pembayaran'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setCart([]);
-        setIsCartOpen(false);
-        Swal.fire({
-          title: 'Transaksi Sukses!',
-          text: 'Terima kasih telah berbelanja di Mbur Store.',
-          icon: 'success',
-          background: '#111827',
-          color: '#FFF',
-          confirmButtonColor: '#10B981'
-        });
-      }
-    });
+  const handleRedirectToLoanPage = (product) => {
+    if (!checkAuth()) return; // Cegah masuk peminjaman jika belum login
+    setLoanAutoSelectProduct(product);
+    setActiveTab('loans');
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B0F19]">
-      <Navbar 
-        cartCount={cart.reduce((a, b) => a + b.quantity, 0)} 
-        onCartClick={() => setIsCartOpen(true)}
-        currentTab={activeTab}
-        setTab={setActiveTab}
-      />
+    <div className="min-h-screen bg-[#0b0f19] text-slate-100 font-sans antialiased selection:bg-emerald-500/30">
+      
+      {/* HEADER NAVBAR */}
+      <header className="bg-[#111827] border-b border-slate-800/80 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <span className="font-black text-white text-lg tracking-wider cursor-pointer" onClick={() => setActiveTab('products')}>
+              MBUR <span className="text-emerald-500">STORE</span>
+            </span>
+            <nav className="flex gap-1 text-xs font-bold uppercase tracking-wider">
+              <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded-lg ${activeTab === 'products' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-white'}`}>Products</button>
+              <button onClick={() => { if(checkAuth()) setActiveTab('loans') }} className={`px-4 py-2 rounded-lg ${activeTab === 'loans' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-white'}`}>Fasilitas Pinjaman</button>
+              <button onClick={() => { if(checkAuth()) setActiveTab('history') }} className={`px-4 py-2 rounded-lg ${activeTab === 'history' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-white'}`}>Riwayat Saya</button>
+              {token && user?.role === 'admin' && (
+                <button onClick={() => setActiveTab('admin')} className="px-4 py-2 rounded-lg bg-cyan-950 text-cyan-400 border border-cyan-800/50">Admin Panel</button>
+              )}
+            </nav>
+          </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
-        {activeTab === 'products' ? (
-          <Product onDetail={setSelectedProduct} onAddToCart={handleAddToCart} />
-        ) : (
-          <Loan />
-        )}
+          {/* SISI KANAN NAVBAR (Dinamis Login / Logged In) */}
+          <div className="flex items-center gap-4">
+            {!token ? (
+              // 🔥 TAMPILKAN TOMBOL MASUK JIKA USER BELUM LOGIN
+              <button 
+                onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); }}
+                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-black tracking-wider uppercase rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-950/20"
+              >
+                <LogIn size={14} /> Masuk / Daftar
+              </button>
+            ) : (
+              // TAMPILKAN SALDO & PROFILE JIKA SUDAH LOGIN
+              <>
+                <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
+                  <Wallet size={14} className="text-emerald-400" />
+                  <span className="text-xs font-mono text-emerald-400 font-bold">
+                    Rp {Number(user?.balance || 0).toLocaleString('id-ID')}
+                  </span>
+                </div>
+                
+                <div className="relative p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 cursor-pointer">
+                  <ShoppingCart size={16} />
+                  {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-emerald-500 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center animate-bounce">{cart.length}</span>}
+                </div>
+
+                <button onClick={logout} className="p-2 bg-slate-900 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-900/50 rounded-xl text-slate-400 hover:text-rose-400 transition-all">
+                  <LogOut size={16} />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* AREA KONTEN UTAMA */}
+      <main className="max-w-6xl mx-auto px-4 py-10">
+        {activeTab === 'products' && <Product onAddToCart={handleAddToCart} onAddToLoan={handleRedirectToLoanPage} />}
+        {activeTab === 'loans' && token && <Loan autoSelectProduct={loanAutoSelectProduct} clearAutoSelect={() => setLoanAutoSelectProduct(null)} />}
+        {activeTab === 'history' && token && <History />}
+        {activeTab === 'admin' && token && <AdminDashboard />}
       </main>
 
-      {/* Modals & Popups */}
-      <ProductDetailModal 
-        isOpen={!!selectedProduct} 
-        product={selectedProduct} 
-        onClose={() => setSelectedProduct(null)} 
-        onAddToCart={handleAddToCart}
-        onAddToLoan={handleAddToLoan}
-      />
-
-      <CartModal 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
-        cartItems={cart} 
-        onRemove={handleRemoveFromCart}
-        onCheckout={handleCheckout}
-      />
-
+      {/* MODAL OTENTIKASI & LIVE CHAT WIDGET */}
       <AuthModal />
+      <LiveChatWidget />
     </div>
   );
 }
