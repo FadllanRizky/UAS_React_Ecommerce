@@ -6,8 +6,8 @@ import ProductDetailModal from '../components/ProductDetailModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-// 🔥 Tangkap prop onAddToLoan dari App.jsx
-export default function Product({ onAddToCart, onAddToLoan }) {
+// 🔥 FIX: Tangkap properti favorites dan onToggleFavorite dari App.jsx bos
+export default function Product({ onAddToCart, onAddToLoan, favorites = [], onToggleFavorite }) {
   const { token } = useAuth();
   
   const [products, setProducts] = useState([]);
@@ -33,7 +33,7 @@ export default function Product({ onAddToCart, onAddToLoan }) {
       .catch((err) => console.error("Gagal load database produk:", err));
   }, []);
 
-  // 🔥 TRIGGER OPER DATA & PINDAH TAB KE APP.JSX
+  // TRIGGER OPER DATA & PINDAH TAB KE APP.JSX
   const handleAddToLoan = (product) => {
     if (!token) {
       Swal.fire({
@@ -50,7 +50,7 @@ export default function Product({ onAddToCart, onAddToLoan }) {
     // Tutup modal detail terlebih dahulu jika sedang terbuka
     setIsModalOpen(false);
 
-    // 🔥 Panggil fungsi operan dari App.jsx untuk pindah halaman & kirim data produk
+    // Panggil fungsi operan dari App.jsx untuk pindah halaman & kirim data produk
     if (onAddToLoan) {
       onAddToLoan(product);
     }
@@ -77,7 +77,10 @@ export default function Product({ onAddToCart, onAddToLoan }) {
                 setIsModalOpen(true);
               }} 
               onAddToCart={onAddToCart} 
-              onAddToLoan={handleAddToLoan} // 🔥 Berjalan lancar bos!
+              onAddToLoan={handleAddToLoan}
+              // 🔥 FIX: Alirkan data state status favorit terupdate ke dalam komponen card
+              isFavorite={favorites.includes(product.id)}
+              onToggleFavorite={onToggleFavorite}
             />
           ))}
         </div>
@@ -93,6 +96,7 @@ export default function Product({ onAddToCart, onAddToLoan }) {
           >
             <ChevronLeft size={18} />
           </button>
+          
           {Array.from({ length: totalPages }, (_, i) => (
             <button
               key={i + 1}
@@ -102,6 +106,7 @@ export default function Product({ onAddToCart, onAddToLoan }) {
               {i + 1}
             </button>
           ))}
+          
           <button 
             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}

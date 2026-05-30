@@ -1,62 +1,87 @@
 import React from 'react';
-import { X, Trash2, ShoppingBag } from 'lucide-react';
+import { X, Trash2, Plus, Minus, CreditCard } from 'lucide-react';
 
-export default function CartModal({ isOpen, onClose, cartItems, onRemove, onCheckout }) {
+export default function CartModal({ isOpen, onClose, cart, setCart, onCheckout }) {
   if (!isOpen) return null;
 
-  const total = cartItems.reduce((acc, item) => acc + (item.price || 0) * item.quantity, 0);
+  const updateQuantity = (id, amount) => {
+    setCart((prev) =>
+      prev
+        .map((item) => {
+          if (item.id === id) {
+            const newQty = (item.quantity || 1) + amount;
+            return newQty > 0 ? { ...item, quantity: newQty } : item;
+          }
+          return item;
+        })
+    );
+  };
+
+  const removeFromCart = (id) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const totalPrice = cart.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[#111827] border-l border-slate-800 h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
-        <div className="p-5 border-b border-slate-800 flex justify-between items-center">
-          <h2 className="text-lg font-black text-white flex items-center gap-2">
-            <ShoppingBag size={20} className="text-emerald-400" /> Keranjang Belanja
-          </h2>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-md h-full bg-[#111827] border-l border-slate-800 p-6 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-300">
+        
+        {/* Header */}
+        <div className="flex justify-between items-center pb-4 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-black text-white uppercase tracking-wider">Keranjang Bos</h2>
+            <span className="bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/20">
+              {cart.length} Item
+            </span>
+          </div>
+          <button onClick={onClose} className="p-1.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-all">
             <X size={18} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {cartItems.length === 0 ? (
+        {/* List Items */}
+        <div className="flex-1 overflow-y-auto py-4 space-y-4 custom-scrollbar">
+          {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-2">
-              <ShoppingBag size={48} className="stroke-1 text-slate-600" />
-              <p className="text-sm">Keranjang Anda masih kosong bos.</p>
+              <p className="text-sm">Keranjang bos masih kosong melompong.</p>
             </div>
           ) : (
-            cartItems.map((item, index) => {
-              // 🔥 SINKRONISASI DATA SUPABASE: Ambil dari image_url dan description
-              const displayImage = item.image_url || item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80';
-              const displayName = item.description || item.name || 'Premium Product';
-              const itemId = item.id || item._id;
-
+            cart.map((item) => {
+              const qty = item.quantity || 1;
               return (
-                <div key={index} className="flex gap-4 p-3 bg-slate-900/60 border border-slate-800 rounded-xl items-center">
-                  {/* Container gambar diubah ke object-contain agar pas dan tidak terpotong */}
-                  <div className="w-16 h-16 bg-slate-950 rounded-lg overflow-hidden flex items-center justify-center p-1 border border-slate-800">
+                <div key={item.id} className="flex gap-4 p-3 bg-slate-950 border border-slate-900 rounded-xl relative group">
+                  <div className="w-16 h-16 bg-slate-900 rounded-lg overflow-hidden flex items-center justify-center p-1 flex-shrink-0">
                     <img 
-                      src={displayImage} 
-                      alt={displayName} 
-                      className="max-w-full max-h-full object-contain rounded-md" 
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80';
-                      }}
+                      src={item.image_url || item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80'} 
+                      alt={item.name} 
+                      className="max-w-full max-h-full object-contain" 
                     />
                   </div>
-                  
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold text-slate-200 line-clamp-1">{displayName}</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      {item.quantity} x Rp {Number(item.price || 0).toLocaleString('id-ID')}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-bold text-slate-200 truncate pr-6">{item.description || item.name}</h4>
+                    <p className="text-xs text-emerald-400 font-bold mt-0.5">Rp {Number(item.price * qty).toLocaleString('id-ID')}</p>
+                    
+                    {/* Counter Quantity */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <button onClick={() => updateQuantity(item.id, -1)} className="p-1 bg-slate-900 hover:bg-slate-800 rounded-md border border-slate-800 text-slate-400 hover:text-white transition-colors">
+                        <Minus size={12} />
+                      </button>
+                      <span className="text-xs font-mono font-bold text-slate-300 px-1 w-6 text-center">{qty}</span>
+                      <button 
+                        onClick={() => {
+                          const maxStock = item.stok !== undefined ? item.stok : (item.stock || 0);
+                          if(qty >= maxStock) return;
+                          updateQuantity(item.id, 1);
+                        }} 
+                        className="p-1 bg-slate-900 hover:bg-slate-800 rounded-md border border-slate-800 text-slate-400 hover:text-white transition-colors"
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
                   </div>
-                  
-                  <button 
-                    onClick={() => onRemove(itemId)} 
-                    className="p-2 text-rose-500/80 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={16} />
+                  <button onClick={() => removeFromCart(item.id)} className="absolute top-3 right-3 text-slate-500 hover:text-rose-400 transition-colors">
+                    <Trash2 size={14} />
                   </button>
                 </div>
               );
@@ -64,20 +89,21 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemove, onChec
           )}
         </div>
 
-        {cartItems.length > 0 && (
-          <div className="p-5 border-t border-slate-800 bg-slate-900/40 space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-400 font-medium">Subtotal</span>
-              <span className="text-lg font-black text-emerald-400">Rp {total.toLocaleString('id-ID')}</span>
-            </div>
-            <button 
-              onClick={onCheckout}
-              className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-950/20 text-center text-sm"
-            >
-              Checkout Sekarang
-            </button>
+        {/* Footer & Checkout */}
+        <div className="pt-4 border-t border-slate-800 space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Pembayaran</span>
+            <span className="text-lg font-black text-emerald-400 font-mono">Rp {totalPrice.toLocaleString('id-ID')}</span>
           </div>
-        )}
+          <button 
+            disabled={cart.length === 0}
+            onClick={() => { onCheckout(totalPrice); onClose(); }}
+            className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:bg-slate-800 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-emerald-950/20 flex items-center justify-center gap-2"
+          >
+            <CreditCard size={16} /> BAYAR SEKARANG VIA SALDO
+          </button>
+        </div>
+
       </div>
     </div>
   );

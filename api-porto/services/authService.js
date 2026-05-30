@@ -2,94 +2,74 @@ import { supabase } from '../config/db.js';
 
 export const authService = {
 
-  // 🔐 LOGIN
-  // 🔐 LOGIN FIX & KOKOH
+  // ================= LOGIN =================
   async login(email, password) {
-    console.log("=== PROSES LOGIN DIMULAI ===");
-    console.log("Mencoba login untuk email:", email);
-
-    // 1. Tembak langsung ke Supabase Auth bawaan
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(), // Antispasi ada spasi tidak sengaja
-      password: password
+      email: email.trim(),
+      password
     });
 
-    // Jika Supabase Auth menolak (Password salah / email salah)
     if (error) {
-      console.error("Supabase Auth Error:", error.message);
-      throw new Error("Email atau password yang bos masukkan salah!");
+      throw new Error('Email atau password salah');
     }
 
     const user = data.user;
-    console.log("Supabase Auth Berhasil! User ID:", user.id);
 
-    // 2. Ambil profile user dari tabel public.users untuk mengambil SALDO & ROLE
-    const { data: profile, error: profileError } = await supabase
+    // 🔥 ambil profile
+    let { data: profile } = await supabase
       .from('users')
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
 
-    if (profileError) {
-      console.error("Gagal mengambil data dari tabel users:", profileError.message);
-      throw new Error("Gagal memuat profil database: " + profileError.message);
-    }
-
-    // 3. JIKA PROFILE DI TABEL 'USERS' BELUM DIBUAT (Sering terjadi saat register bypass)
-    // Kita buatkan otomatis (auto-fallback) biar user TIDAK gagal login!
-    let finalProfile = profile;
+    // 🔥 kalau belum ada → buat otomatis
     if (!profile) {
-      console.log("Profil di tabel users tidak ditemukan! Membuat profil otomatis...");
       const { data: newProfile, error: insertError } = await supabase
         .from('users')
-        .insert([
+        .upsert([
           {
             id: user.id,
             email: user.email,
-            full_name: user.email.split('@')[0], // Gunakan nama depan email sebagai fallback
+            full_name: user.email.split('@')[0],
             role: 'customer',
             credit_score: 50,
             loan_limit: 2000000,
-            balance: 2000000 // Berikan saldo otomatis jika belum ada
+            balance: 2000000
           }
         ])
         .select()
         .single();
 
-      if (insertError) {
-        console.error("Gagal membuat profil otomatis:", insertError.message);
-        throw new Error("Gagal sinkronisasi data profil baru.");
-      }
-      finalProfile = newProfile;
+      if (insertError) throw new Error(insertError.message);
+
+      profile = newProfile;
     }
 
-    console.log("=== LOGIN BERHASIL LENGKAP ===");
-    
-    // Kembalikan struktur data yang klop dengan frontend AuthContext bos
     return {
       user: {
         id: user.id,
         email: user.email,
-        ...finalProfile
+        ...profile
       },
       session: data.session
     };
   },
-  // 📝 REGISTER + HADIAH SALDO AWAL Rp 2.000.000
+
+  // ================= REGISTER =================
   async register({ email, password, full_name }) {
 
-    // 🔥 0. CEK USERNAME SUDAH ADA ATAU BELUM
+    // 🔥 CEK EMAIL (BUKAN NAMA!)
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
-      .eq('full_name', full_name)
+      .eq('email', email)
       .maybeSingle();
 
     if (existingUser) {
-      throw new Error('Username sudah digunakan');
+      throw new Error('Email sudah terdaftar');
     }
 
-    // 🔥 1. REGISTER KE AUTH SUPABASE
+    // 🔥 REGISTER KE AUTH
     const { data, error } = await supabase.auth.signUp({
       email,
       password
@@ -100,13 +80,13 @@ export const authService = {
     const user = data.user;
 
     if (!user) {
-      throw new Error('Gagal membuat user auth');
+      throw new Error('Gagal membuat user');
     }
 
-    // 🔥 2. INSERT KE TABLE USERS + DEPOSIT SALDO DAFTAR
+    // 🔥 SIMPAN KE TABLE USERS (PAKAI UPSERT)
     const { data: profile, error: profileError } = await supabase
       .from('users')
-      .insert([
+      .upsert([
         {
           id: user.id,
           email,
@@ -114,7 +94,7 @@ export const authService = {
           role: 'customer',
           credit_score: 50,
           loan_limit: 2000000,
-          balance: 2000000 // 🔥 HADIAH PENGGUNA BARU LANGSUNG DAPAT Rp 2.000.000 BOS!
+          balance: 2000000
         }
       ])
       .select()
@@ -128,7 +108,7 @@ export const authService = {
         email,
         ...profile
       },
-      message: 'Register berhasil, silakan login bos!'
+      message: 'Register berhasil bos!'
     };
   }
 };
