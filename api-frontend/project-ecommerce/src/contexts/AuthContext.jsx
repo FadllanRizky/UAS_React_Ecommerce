@@ -1,156 +1,78 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useContext, useState } from 'react';
 import Swal from 'sweetalert2';
-import { getMyLoans } from '../api/loanApi';
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // 🔥 Ambil token awal dan data user langsung dari localStorage agar saat di-refresh TIDAK mental
-  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  // 🔥 LANGSUNG AMBIL DI AWAL BIAR REAL-TIME DAN ANTI-DELAY BEGITU RELOAD Halaman
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem('user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
+      return null;
+    }
   });
 
+  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
-  const [loans, setLoans] = useState([]);
 
-  // 🔥 Efek untuk mendeteksi token & load data pinjaman secara otomatis
-  useEffect(() => {
-    if (!token) return;
+  // ✅ Fungsi Login Otomatis & Fleksibel
+  const login = (apiResponseData) => {
+    if (!apiResponseData) return;
 
-    const fetchData = async () => {
-      try {
-        const res = await getMyLoans(token);
-        setLoans(res.data || []);
-      } catch (err) {
-        console.error("Gagal load loan:", err.response?.data || err);
-      }
-    };
+    let coreData = apiResponseData.data ? apiResponseData.data : apiResponseData;
+    
+    if (coreData.data && !coreData.user && !coreData.token && !coreData.access_token) {
+      coreData = coreData.data;
+    }
 
-    fetchData();
-  }, [token]);
+    const accessToken = coreData.token || coreData.access_token;
+    let userData = coreData.user || coreData;
 
-  // 🔥 LOGIN FIX (Mendukung Simpan Token + Data User + Role + Saldo)
-  const login = (data) => {
-    console.log('LOGIN RESPONSE:', data); // 🔥 DEBUG WAJIB
-
-    // 🔥 FLEXIBLE ambil token dari response server bos
-    const newToken =
-      data?.session?.access_token ||
-      data?.access_token ||
-      data?.token;
-
-    // 🔥 Ekstrak data user (termasuk role, balance/saldo, full_name)
-    const userData = data?.user || data?.customer || null;
-
-    if (!newToken) {
-      console.error('TOKEN TIDAK DITEMUKAN!');
+    if (!accessToken) {
+      console.error("🚨 Token tidak ditemukan di response API bos!", apiResponseData);
       Swal.fire({
-        title: 'Login Gagal',
-        text: 'Token tidak ditemukan dari server',
+        title: 'Gagal Sinkronisasi',
+        text: 'Token autentikasi tidak ditemukan dalam response server.',
         icon: 'error',
         background: '#111827',
-        color: '#FFF',
-        confirmButtonColor: '#EF4444'
+        color: '#fff'
       });
       return;
     }
 
-    // Set State Utama
-    setToken(newToken);
+    // Eksekusi simpan ke ekosistem React & Browser LocalStorage
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', accessToken);
+
     setUser(userData);
-
-    // 🔥 Simpan permanen ke LocalStorage biar di-refresh tetap stay di halaman yang sama
-    localStorage.setItem('token', newToken);
-    if (userData) {
-      localStorage.setItem('user', JSON.stringify(userData));
-    }
-
+    setToken(accessToken);
     setIsAuthModalOpen(false);
 
-    Swal.fire({
-      title: 'Welcome Back, Bos!',
-      text: `Anda berhasil masuk sebagai ${userData?.full_name || 'User'}.`,
-      icon: 'success',
-      background: '#111827',
-      color: '#FFF',
-      confirmButtonColor: '#10B981'
-    });
+    // Force reload secara bersih agar App.jsx membaca ulang state admin terbaru tanpa interupsi
+    window.location.reload();
   };
 
-  // 🔥 LOGOUT (Bersihkan semua state & storage)
   const logout = () => {
-    setToken(null);
+    localStorage.clear();
     setUser(null);
-    setLoans([]);
-    
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('activeTab'); // Opsional: reset tab agar kembali ke produk saat login nanti
-
-    Swal.fire({
-      title: 'Logged Out',
-      text: 'Anda berhasil keluar dari sistem.',
-      icon: 'success',
-      background: '#111827',
-      color: '#FFF',
-      confirmButtonColor: '#10B981'
-    });
+    setToken(null);
+    window.location.href = '/'; 
   };
 
-  // 🔥 Fungsi Update Saldo / Data Profile User Dinamis (Dipakai saat kelar belanja/peminjaman di-ACC)
-  const updateUserProfile = (updatedData) => {
-    setUser((prevUser) => {
-      const mergedData = { ...prevUser, ...updatedData };
-      localStorage.setItem('user', JSON.stringify(mergedData));
-      return mergedData;
-    });
-  };
-
-  // 🔥 Proteksi fitur bertenaga SweetAlert2
   const checkAuth = () => {
     if (!token) {
-      Swal.fire({
-        title: 'Akses Ditolak',
-        text: 'Harap login dulu bos',
-        icon: 'warning',
-        background: '#111827',
-        color: '#E2E8F0',
-        confirmButtonColor: '#EF4444',
-        showCancelButton: true,
-        confirmButtonText: 'Login Sekarang',
-        cancelButtonText: 'Nanti'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          setAuthMode('login');
-          setIsAuthModalOpen(true);
-        }
-      });
+      setAuthMode('login');
+      setIsAuthModalOpen(true);
       return false;
     }
     return true;
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        token,
-        user,
-        loans,
-        setLoans,
-        setUser,
-        updateUserProfile, // 🔥 Panggil fungsi ini jika ingin memotong/menambah saldo secara real-time
-        login,
-        logout,
-        isAuthModalOpen,
-        setIsAuthModalOpen,
-        authMode,
-        setAuthMode,
-        checkAuth
-      }}
-    >
+    <AuthContext.Provider value={{ user, token, login, logout, checkAuth, isAuthModalOpen, setIsAuthModalOpen, authMode, setAuthMode }}>
       {children}
     </AuthContext.Provider>
   );

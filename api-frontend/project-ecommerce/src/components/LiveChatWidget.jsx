@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { MessageSquare, X, Send, User } from 'lucide-react';
+import { MessageSquare, X, Send } from 'lucide-react';
 import axios from 'axios';
 
 export default function LiveChatWidget() {
@@ -8,24 +8,41 @@ export default function LiveChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [activeChatUser, setActiveChatUser] = useState(null); // ID target user untuk admin
   const chatEndRef = useRef(null);
+
+  // Pasang listener global rahasia agar trigger klik di Card produk berfungsi gaib bos!
+  useEffect(() => {
+    const handleTriggerChat = (e) => {
+      setIsOpen(true);
+      if (e.detail?.targetUser) {
+        setActiveChatUser(e.detail.targetUser);
+      }
+    };
+    window.addEventListener('trigger-mbur-chat', handleTriggerChat);
+    return () => window.removeEventListener('trigger-mbur-chat', handleTriggerChat);
+  }, []);
 
   const fetchMessages = async () => {
     try {
-      const res = await axios.get('/api/chat', { headers: { Authorization: `Bearer ${token}` } });
+      // Jika admin, sertakan parameter target_user agar data tidak kosong/bercampur aduk
+      const url = user?.role === 'admin' && activeChatUser 
+        ? `/api/chat?target_user=${activeChatUser}` 
+        : '/api/chat';
+
+      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       setMessages(res.data);
     } catch (err) {
       console.error("Gagal sinkronisasi chat:", err);
     }
   };
 
-  // Pooling 2 detik sekali agar data chat ter-update real-time antar dua tab
   useEffect(() => {
     if (!token || !isOpen) return;
     fetchMessages();
     const interval = setInterval(fetchMessages, 2000);
     return () => clearInterval(interval);
-  }, [token, isOpen]);
+  }, [token, isOpen, activeChatUser]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -36,7 +53,10 @@ export default function LiveChatWidget() {
     if (!inputMessage.trim()) return;
 
     try {
-      const payload = { message: inputMessage, sender_role: user?.role };
+      const payload = { 
+        message: inputMessage, 
+        target_user_id: user?.role === 'admin' ? activeChatUser : null 
+      };
       await axios.post('/api/chat', payload, { headers: { Authorization: `Bearer ${token}` } });
       setInputMessage('');
       fetchMessages();
@@ -49,18 +69,17 @@ export default function LiveChatWidget() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans">
-      {/* Tombol Trigger Buka Chat */}
+      {/* Tombol Bulat Asli Tersembunyi via CSS App.jsx ([&_button]:hidden) */}
       {!isOpen && (
         <button
+          id="live-chat-trigger-btn"
           onClick={() => setIsOpen(true)}
-          className="p-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center border border-emerald-400/20"
+          className="p-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full shadow-2xl transition-all flex items-center justify-center"
         >
           <MessageSquare size={24} />
-          {user?.role === 'admin' && <span className="absolute -top-1 -right-1 bg-rose-500 text-[9px] px-1.5 py-0.5 rounded-full font-bold">ADM</span>}
         </button>
       )}
 
-      {/* Box Chat Premium Layout */}
       {isOpen && (
         <div className="w-80 h-96 bg-[#111827] border border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
           {/* Header */}
@@ -78,21 +97,25 @@ export default function LiveChatWidget() {
 
           {/* Area Pesan */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-950/40">
-            {messages.map((msg, i) => {
-              const isMe = msg.sender_id === user?.id;
-              return (
-                <div key={i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                  <span className="text-[9px] text-slate-500 mb-0.5 font-bold uppercase tracking-tight">
-                    {msg.sender_role}
-                  </span>
-                  <div className={`max-w-[75%] px-3 py-2 rounded-xl text-xs font-medium leading-relaxed ${
-                    isMe ? 'bg-emerald-500 text-white rounded-tr-none' : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-tl-none'
-                  }`}>
-                    {msg.message}
+            {messages.length === 0 ? (
+              <p className="text-center text-[11px] text-slate-500 pt-10">Belum ada obrolan masuk bos.</p>
+            ) : (
+              messages.map((msg, i) => {
+                const isMe = msg.sender_id === user?.id;
+                return (
+                  <div key={i} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                    <span className="text-[9px] text-slate-500 mb-0.5 font-bold uppercase tracking-tight">
+                      {msg.sender_role}
+                    </span>
+                    <div className={`max-w-[75%] px-3 py-2 rounded-xl text-xs font-medium leading-relaxed ${
+                      isMe ? 'bg-emerald-500 text-white rounded-tr-none' : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-tl-none'
+                    }`}>
+                      {msg.message}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
             <div ref={chatEndRef} />
           </div>
 

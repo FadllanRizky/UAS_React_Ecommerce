@@ -13,7 +13,6 @@ export const register = async (req, res) => {
     });
 
     res.json(result);
-
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -27,13 +26,12 @@ export const login = async (req, res) => {
     const result = await authService.login(email, password);
 
     res.json(result);
-
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
-// 🔥 RESEND EMAIL
+// 🔁 RESEND EMAIL
 export const resendEmail = async (req, res) => {
   try {
     const { email } = req.body;
@@ -47,8 +45,7 @@ export const resendEmail = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    res.json({ message: 'Email dikirim ulang' });
-
+    res.json({ message: 'Email konfirmasi berhasil dikirim ulang bos!' });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -1,28 +1,19 @@
-import axios from 'axios';
+import api from './axiosInstance';
 
-const API = 'http://localhost:3000/api/loans';
+// 👤 USER → ambil loan sendiri
+export const getMyLoans = () => api.get('/loans/me');
 
-export const getMyLoans = (token) =>
-  axios.get(`${API}/me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-// 🔥 SESUAIKAN: Content-Type diubah agar Axios tahu ini adalah pengiriman FormData berkas KTP
-export const createLoan = (formData, token) =>
-  axios.post(API, formData, {
-    headers: { 
-      Authorization: `Bearer ${token}`,
+// 👤 USER → ajukan pinjaman + upload KTP
+export const createLoan = (formData) =>
+  api.post('/loans', formData, {
+    headers: {
       'Content-Type': 'multipart/form-data'
     }
   });
 
-// 🔥 TAMBAHAN UNTUK ADMIN: Hit endpoint panel kontrol admin
-export const getAllLoansAdmin = (token) =>
-  axios.get(`${API}/admin/all`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+// 👑 ADMIN → ambil semua loan
+export const getAllLoansAdmin = () => api.get('/admin/loans');
 
-export const updateLoanStatusAdmin = (loanId, status, token) =>
-  axios.put(`${API}/admin/status/${loanId}`, { status }, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+// 👑 ADMIN → approve / reject
+export const updateLoanStatusAdmin = (loanId, status) =>
+  api.put(`/admin/loans/status/${loanId}`, { status });

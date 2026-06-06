@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { createLoan, getMyLoans, getAllLoans, updateLoanStatus } from '../controllers/loanController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { adminMiddleware } from '../middleware/adminMiddleware.js'; // 🔥 Sudah terimport dengan aman bos
 
 const router = express.Router();
 
@@ -39,13 +40,14 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // Batas maksimal file 5 Megabytes
 });
 
-// 👥 ROUTE SISI USER
+// 👥 ROUTE SISI USER (Hanya butuh login customer biasa)
 // Ditambahkan middleware upload.single('id_card') untuk menangkap file dari form-data react
 router.post('/', authMiddleware, upload.single('id_card'), createLoan);
 router.get('/me', authMiddleware, getMyLoans);
 
-// 👑 ROUTE SISI ADMIN
-router.get('/admin/all', authMiddleware, getAllLoans);
-router.put('/admin/status/:id', authMiddleware, updateLoanStatus);
+
+// 👑 ROUTE SISI ADMIN (Proteksi Ganda: Wajib Login & Wajib Akun ber-Role Admin)
+router.get('/admin/all', authMiddleware, adminMiddleware, getAllLoans);
+router.put('/admin/status/:id', authMiddleware, adminMiddleware, updateLoanStatus);
 
 export default router;

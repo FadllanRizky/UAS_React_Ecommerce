@@ -5,33 +5,34 @@ export const authMiddleware = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      return res.status(401).json({ message: 'Unauthorized - No Token' });
+      return res.status(401).json({ message: 'Akses ditolak, token tidak ditemukan' });
     }
 
     const token = authHeader.split(' ')[1];
 
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized - Token kosong' });
-    }
-
-    // 🔥 WAJIB: pakai ini (lebih stabil)
     const {
       data: { user },
       error
     } = await supabase.auth.getUser(token);
 
-    console.log("USER:", user);
-    console.log("ERROR:", error);
-
     if (error || !user) {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ message: 'Sesi kedaluwarsa / token tidak valid' });
     }
 
-    req.user = user;
+    // 🔥 CEK LINKING KE TABEL ADMINS
+    const { data: admin } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    req.user = {
+      ...user,
+      role: admin ? 'admin' : 'customer'
+    };
 
     next();
   } catch (err) {
-    console.error(err);
-    res.status(401).json({ message: 'Auth error' });
+    res.status(401).json({ message: 'Gangguan Autentikasi Sistem' });
   }
-};  
+};

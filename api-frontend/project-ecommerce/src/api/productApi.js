@@ -1,10 +1,13 @@
-import axios from 'axios';
+import api from './axiosInstance';
 
-const API = 'http://localhost:3000/api/products';
+// 🔍 PUBLIC / USER
+export const getProducts = () => api.get('/products');
 
-export const getProducts = () => axios.get(API);
+// 👑 ADMIN
+export const createProduct = (data) => api.post('/admin/products', data);
 
-export const createProduct = (data, token) =>
-  axios.post(API, data, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+export const updateProduct = (id, data) =>
+  api.put(`/admin/products/${id}`, data);
+
+export const deleteProduct = (id) =>
+  api.delete(`/admin/products/${id}`);

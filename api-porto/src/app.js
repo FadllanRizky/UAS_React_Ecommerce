@@ -1,59 +1,67 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'path'; // 🔥 Tambahkan ini untuk handle static folder
+import path from 'path';
 
 // 🔥 ROUTES
 import authRoutes from '../routes/authRoute.js';
 import categoryRoutes from '../routes/categoryRoute.js';
 import productRoutes from '../routes/productRoute.js';
 import loanRoutes from '../routes/loanRoute.js'; 
+import adminRoute from '../routes/adminRoute.js';
+import chatRoute from '../routes/chatRoute.js';
 
 const app = express();
 
-// 🔥 CORS
+// ================== CORS ==================
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true
 }));
 
-// 🔥 MIDDLEWARE
+// ================== BODY PARSER ==================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔥 EXPOSE FOLDER UPLOADS: Biar gambar KTP bisa diakses via url browser (http://localhost:3000/uploads/nama-file.jpg)
+// ================== STATIC FILE ==================
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// 🔥 TEST
+// ================== HEALTH CHECK ==================
 app.get('/', (req, res) => {
-  res.send('API running...');
+  res.json({
+    message: '🚀 API Running',
+    version: '1.0.0'
+  });
 });
 
-// 🔥 ROUTES REGISTERED
+// ================== ROUTES ==================
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/loans', loanRoutes); 
+app.use('/api/loans', loanRoutes);
+app.use('/api/admin', adminRoute);
+app.use('/api/chat', chatRoute);
 
-// 🔥 ERROR HANDLER
+// ================== ERROR HANDLER ==================
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({
+  console.error('❌ ERROR:', err);
+
+  res.status(err.status || 500).json({
     error: err.message || 'Internal Server Error'
   });
 });
 
-// 🔥 404 HANDLER
+// ================== 404 ==================
 app.use((req, res) => {
   res.status(404).json({
     message: 'Route tidak ditemukan'
   });
 });
 
-// 🔥 RUN SERVER
+// ================== RUN SERVER ==================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
 export default app;
