@@ -12,7 +12,7 @@ export const adminService = {
   rejectLoan: (id) => api.put(`/admin/loans/${id}/reject`),
 
   // 📦 MANAGEMENT PRODUCTS
-  getProducts: () => api.get('/products'), // Menembak public/admin product list
+  getProducts: () => api.get('/products'), 
   createProduct: (data) => api.post('/admin/products', data),
   updateProduct: (id, data) => api.put(`/admin/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/admin/products/${id}`),

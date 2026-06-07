@@ -60,7 +60,7 @@ export const rejectLoan = async (req, res) => {
 export const createProductController = async (req, res) => {
   try {
     const data = await adminService.createProduct(req.body);
-    res.status(210).json(data);
+    res.status(201).json(data); // Diubah jadi standar HTTP 201 Created
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

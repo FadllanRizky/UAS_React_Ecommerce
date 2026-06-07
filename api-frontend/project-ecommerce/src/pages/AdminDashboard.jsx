@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, Users, ShoppingBag, DollarSign, MessageSquare, Tag, Edit, Trash2, Check, X, Plus } from 'lucide-react';
 import Swal from 'sweetalert2';
-import api from '../api/axiosInstance'; // Instance axios auto-token
+import api from '../api/axiosInstance'; 
 import { adminService } from '../api/adminApi';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const [currentSubTab, setCurrentSubTab] = useState('chat');
+  const [currentSubTab, setCurrentSubTab] = useState('loans'); // Default langsung ke Loans biar kelihatan hasilnya
   
   // State Data Utama
   const [allUsers, setAllUsers] = useState([]);
@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const [chatUsers, setChatUsers] = useState([]);
   const [selectedChatUser, setSelectedChatUser] = useState(null);
 
-  // Fungsi Sinkronisasi Data Master Berkala (Dibuat super defensif & informatif)
+  // Fungsi Sinkronisasi Data Master Berkala
   const loadAdminData = async () => {
     try {
       const [resUsers, resProducts, resLoans, resCategories, resChatUsers] = await Promise.all([
@@ -25,10 +25,10 @@ export default function AdminDashboard() {
         adminService.getProducts().catch((err) => { console.error("🚨 API Error (Products):", err); return { data: [] }; }), 
         adminService.getLoans().catch((err) => { console.error("🚨 API Error (Loans):", err); return { data: [] }; }),
         adminService.getCategories().catch((err) => { console.error("🚨 API Error (Categories):", err); return { data: [] }; }),
-        api.get('/chat/admin/users').catch((err) => { console.error("🚨 API Error (Chat):", err); return { data: [] }; })
+        api.get('/chat/admin/users').catch((err) => { console.error("🚨 API Error (Chat 404 - Pastikan route backend sudah ada):", err); return { data: [] }; })
       ]);
 
-      // 🔥 AUTO-EXTRACTOR: Antisipasi jika data dibungkus res.data.data atau res.data.loans
+      // 🔥 AUTO-EXTRACTOR: Antisipasi pembungkusan data oleh Express
       const rawUsers = resUsers?.data?.data || resUsers?.data?.users || resUsers?.data || [];
       const rawProducts = resProducts?.data?.data || resProducts?.data?.products || resProducts?.data || [];
       const rawLoans = resLoans?.data?.data || resLoans?.data?.loans || resLoans?.data || [];
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadAdminData();
-    const interval = setInterval(loadAdminData, 4000); // Auto refresh data tiap 4 detik
+    const interval = setInterval(loadAdminData, 5000); // Naikkan ke 5 detik biar gak terlalu membebani network
     return () => clearInterval(interval);
   }, []);
 
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
         ? await adminService.approveLoan(id) 
         : await adminService.rejectLoan(id);
       
-      Swal.fire({ title: 'Berhasil!', text: res.data.message, icon: 'success', background: '#111827', color: '#fff' });
+      Swal.fire({ title: 'Berhasil!', text: res?.data?.message || 'Aksi Berhasil!', icon: 'success', background: '#111827', color: '#fff' });
       loadAdminData();
     } catch (err) {
       Swal.fire('Gagal!', err.response?.data?.error || 'Aksi ditolak sistem.', 'error');
@@ -274,13 +274,17 @@ export default function AdminDashboard() {
             <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-400"><Shield size={18} /></div>
             <div>
               <h2 className="text-xs font-black tracking-wider text-white uppercase">MODE KONTROL</h2>
-              <p className="text-[10px] text-slate-400 font-medium">@{user?.username || 'Administrator'}</p>
+              <p className="text-[10px] text-slate-400 font-medium">@{user?.full_name || 'Admin Mbur'}</p>
             </div>
           </div>
 
-          <button onClick={() => setCurrentSubTab('chat')} className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'chat' ? 'bg-cyan-500 text-white' : 'hover:bg-slate-800 text-slate-400'}`}>
-            <span className="flex items-center gap-2"><MessageSquare size={16} /> Hub Chat Masuk</span>
-            {chatUsers.length > 0 && <span className="bg-rose-500 text-white px-1.5 py-0.5 rounded-md text-[9px] font-black animate-pulse">{chatUsers.length}</span>}
+          <button onClick={() => setCurrentSubTab('loans')} className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'loans' ? 'bg-cyan-500 text-white' : 'hover:bg-slate-800 text-slate-400'}`}>
+            <span className="flex items-center gap-2"><DollarSign size={16} /> Approval Kredit</span>
+            {allLoans.filter(l => l?.status === 'pending').length > 0 && (
+              <span className="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-md text-[9px] font-black">
+                {allLoans.filter(l => l?.status === 'pending').length}
+              </span>
+            )}
           </button>
 
           <button onClick={() => setCurrentSubTab('users')} className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'users' ? 'bg-cyan-500 text-white' : 'hover:bg-slate-800 text-slate-400'}`}>
@@ -295,13 +299,9 @@ export default function AdminDashboard() {
             <span className="flex items-center gap-2"><Tag size={16} /> Manajemen Kategori</span>
           </button>
 
-          <button onClick={() => setCurrentSubTab('loans')} className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'loans' ? 'bg-cyan-500 text-white' : 'hover:bg-slate-800 text-slate-400'}`}>
-            <span className="flex items-center gap-2"><DollarSign size={16} /> Approval Kredit</span>
-            {allLoans.filter(l => l?.status === 'pending').length > 0 && (
-              <span className="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-md text-[9px] font-black">
-                {allLoans.filter(l => l?.status === 'pending').length}
-              </span>
-            )}
+          <button onClick={() => setCurrentSubTab('chat')} className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${currentSubTab === 'chat' ? 'bg-cyan-500 text-white' : 'hover:bg-slate-800 text-slate-400'}`}>
+            <span className="flex items-center gap-2"><MessageSquare size={16} /> Hub Chat Masuk</span>
+            {chatUsers.length > 0 && <span className="bg-rose-500 text-white px-1.5 py-0.5 rounded-md text-[9px] font-black animate-pulse">{chatUsers.length}</span>}
           </button>
         </div>
       </div>
@@ -309,29 +309,61 @@ export default function AdminDashboard() {
       {/* 🖥️ RIGHT CONTENT BOARD */}
       <div className="flex-1 bg-[#111827]/30 border border-slate-800/50 rounded-2xl p-6 backdrop-blur-sm">
         
-        {/* CHAT TAB */}
-        {currentSubTab === 'chat' && (
+        {/* LOANS TAB */}
+        {currentSubTab === 'loans' && (
           <div className="space-y-4 animate-in fade-in duration-300">
-            <div>
-              <h2 className="text-lg font-black text-white uppercase">HUB CHAT CUSTOMER MASUK</h2>
-              <p className="text-xs text-slate-400">Notifikasi interaksi pertanyaan spesifikasi produk atau pengajuan nego dari customer.</p>
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              {chatUsers.length === 0 ? (
-                <div className="text-center py-12 border border-dashed border-slate-800 rounded-xl text-xs text-slate-500">Belum ada pesan baru masuk.</div>
-              ) : (
-                chatUsers.map(cu => (
-                  <div key={cu.id} className={`p-4 border rounded-xl flex justify-between items-center bg-slate-900/60 transition-all ${selectedChatUser === cu.id ? 'border-cyan-500' : 'border-slate-800 hover:border-slate-700'}`}>
-                    <div>
-                      <h4 className="text-xs font-black text-white uppercase tracking-tight">{cu.username || cu.full_name}</h4>
-                      <p className="text-[11px] text-slate-400 mt-0.5">{cu.email}</p>
-                    </div>
-                    <button onClick={() => openChatWithUser(cu.id)} className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] font-extrabold rounded-lg flex items-center gap-1.5 transition-colors">
-                      <MessageSquare size={12} /> BALAS CHAT
-                    </button>
-                  </div>
-                ))
-              )}
+            <h2 className="text-lg font-black text-white uppercase">ACC Lembar Komitmen Dana Kredit</h2>
+            <div className="overflow-x-auto border border-slate-800 rounded-xl bg-slate-950/20">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
+                  <tr>
+                    <th className="p-3.5">Peminjam</th>
+                    <th className="p-3.5">No Telepon / NIK</th>
+                    <th className="p-3.5">Jumlah Dana</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50">
+                  {allLoans.length === 0 ? (
+                    <tr><td colSpan="5" className="p-4 text-center text-slate-500">Belum ada riwayat berkas pinjaman atau data terganggu eror 500.</td></tr>
+                  ) : (
+                    allLoans.map(l => (
+                      <tr key={l.id} className="hover:bg-slate-900/20">
+                        <td className="p-3.5 font-bold text-white">
+                          <div className="font-bold">{l.full_name_applicant || l.users?.full_name || 'User Tanpa Nama'}</div>
+                          <div className="text-[10px] text-slate-500 font-mono">{l.users?.email || l.email || ''}</div>
+                        </td>
+                        <td className="p-3.5 text-slate-400 font-mono">
+                          <div>Telp: {l.phone_number || '-'}</div>
+                          <div className="text-[10px] text-slate-500">NIK: {l.nik || '-'}</div>
+                        </td>
+                        <td className="p-3.5 font-black text-cyan-400">Rp {Number(l.loan_amount || l.amount || 0).toLocaleString('id-ID')}</td>
+                        <td className="p-3.5">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                            l.status === 'pending' ? 'bg-amber-500/10 text-amber-400' :
+                            l.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                          }`}>{l.status}</span>
+                        </td>
+                        <td className="p-3.5 text-right">
+                          {l.status === 'pending' ? (
+                            <div className="flex justify-end gap-1.5">
+                              <button onClick={() => handleProcessLoan(l.id, 'approved')} className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black rounded-lg flex items-center gap-0.5 transition-colors">
+                                <Check size={11} /> ACC
+                              </button>
+                              <button onClick={() => handleProcessLoan(l.id, 'rejected')} className="px-2 py-1 bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-black rounded-lg flex items-center gap-0.5 transition-colors">
+                                <X size={11} /> REJECT
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-500 font-medium">Selesai Diproses</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -354,7 +386,7 @@ export default function AdminDashboard() {
                 <tbody className="divide-y divide-slate-800/50">
                   {allUsers.map(u => (
                     <tr key={u.id} className="hover:bg-slate-900/20">
-                      <td className="p-3.5 font-bold text-white">{u.full_name || u.username || 'No Name'}</td>
+                      <td className="p-3.5 font-bold text-white">{u.full_name || 'No Name'}</td>
                       <td className="p-3.5 text-slate-400 font-mono">{u.email}</td>
                       <td className="p-3.5">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${u.role === 'admin' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-slate-800 text-slate-300'}`}>
@@ -434,7 +466,7 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody className="divide-y divide-slate-800/50">
                   {allCategories.length === 0 ? (
-                    <tr><td colSpan="3" className="p-4 text-center text-slate-500">Belum ada kategori yang dikonfigurasi atau API bermasalah.</td></tr>
+                    <tr><td colSpan="3" className="p-4 text-center text-slate-500">Belum ada kategori yang dikonfigurasi.</td></tr>
                   ) : (
                     allCategories.map(c => (
                       <tr key={c.id || c.slug} className="hover:bg-slate-900/20">
@@ -453,61 +485,29 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* LOANS TAB */}
-        {currentSubTab === 'loans' && (
+        {/* CHAT TAB */}
+        {currentSubTab === 'chat' && (
           <div className="space-y-4 animate-in fade-in duration-300">
-            <h2 className="text-lg font-black text-white uppercase">ACC Lembar Komitmen Dana Kredit</h2>
-            <div className="overflow-x-auto border border-slate-800 rounded-xl bg-slate-950/20">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
-                  <tr>
-                    <th className="p-3.5">Peminjam</th>
-                    <th className="p-3.5">No Telepon / NIK</th>
-                    <th className="p-3.5">Jumlah Dana</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/50">
-                  {allLoans.length === 0 ? (
-                    <tr><td colSpan="5" className="p-4 text-center text-slate-500">Belum ada riwayat berkas pinjaman atau API bermasalah.</td></tr>
-                  ) : (
-                    allLoans.map(l => (
-                      <tr key={l.id} className="hover:bg-slate-900/20">
-                        <td className="p-3.5 font-bold text-white">
-                          <div className="font-bold">{l.full_name_applicant || l.users?.username || l.username || 'User Terhapus'}</div>
-                          <div className="text-[10px] text-slate-500 font-mono">{l.users?.email || l.email || ''}</div>
-                        </td>
-                        <td className="p-3.5 text-slate-400 font-mono">
-                          <div>Telp: {l.phone_number || '-'}</div>
-                          <div className="text-[10px] text-slate-500">NIK: {l.nik || '-'}</div>
-                        </td>
-                        <td className="p-3.5 font-black text-cyan-400">Rp {Number(l.loan_amount || l.amount || 0).toLocaleString('id-ID')}</td>
-                        <td className="p-3.5">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                            l.status === 'pending' ? 'bg-amber-500/10 text-amber-400' :
-                            l.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
-                          }`}>{l.status}</span>
-                        </td>
-                        <td className="p-3.5 text-right">
-                          {l.status === 'pending' ? (
-                            <div className="flex justify-end gap-1.5">
-                              <button onClick={() => handleProcessLoan(l.id, 'approved')} className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black rounded-lg flex items-center gap-0.5 transition-colors">
-                                <Check size={11} /> ACC
-                              </button>
-                              <button onClick={() => handleProcessLoan(l.id, 'rejected')} className="px-2 py-1 bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-black rounded-lg flex items-center gap-0.5 transition-colors">
-                                <X size={11} /> REJECT
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-[11px] text-slate-500 font-medium">Selesai Diproses</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            <div>
+              <h2 className="text-lg font-black text-white uppercase">HUB CHAT CUSTOMER MASUK</h2>
+              <p className="text-xs text-slate-400">Notifikasi interaksi pertanyaan spesifikasi produk dari customer.</p>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {chatUsers.length === 0 ? (
+                <div className="text-center py-12 border border-dashed border-slate-800 rounded-xl text-xs text-slate-500">Belum ada pesan baru masuk / Route chat backend belum siap.</div>
+              ) : (
+                chatUsers.map(cu => (
+                  <div key={cu.id} className={`p-4 border rounded-xl flex justify-between items-center bg-slate-900/60 transition-all ${selectedChatUser === cu.id ? 'border-cyan-500' : 'border-slate-800 hover:border-slate-700'}`}>
+                    <div>
+                      <h4 className="text-xs font-black text-white uppercase tracking-tight">{cu.full_name || 'Customer'}</h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{cu.email}</p>
+                    </div>
+                    <button onClick={() => openChatWithUser(cu.id)} className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-[11px] font-extrabold rounded-lg flex items-center gap-1.5 transition-colors">
+                      <MessageSquare size={12} /> BALAS CHAT
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}

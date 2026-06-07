@@ -1,7 +1,7 @@
 import api from './axiosInstance';
 
-// 💬 ambil chat
-export const getChats = () => api.get('/chat');
+// 💬 ambil chat (Diberi parameter 'params' agar admin bisa filter room chat via Axios)
+export const getChats = (params) => api.get('/chat', { params });
 
 // 👑 admin → list user yang chat
 export const getChatUsers = () => api.get('/chat/admin/users');
