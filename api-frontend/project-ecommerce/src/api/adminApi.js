@@ -12,7 +12,7 @@ export const adminService = {
   rejectLoan: (id) => api.put(`/admin/loans/${id}/reject`),
 
   // 📦 MANAGEMENT PRODUCTS
-  getProducts: () => api.get('/products'), 
+  getProducts: () => api.get('/products'),
   createProduct: (data) => api.post('/admin/products', data),
   updateProduct: (id, data) => api.put(`/admin/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/admin/products/${id}`),
@@ -22,4 +22,8 @@ export const adminService = {
   createCategory: (data) => api.post('/admin/categories', data),
   updateCategory: (id, data) => api.put(`/admin/categories/${id}`, data),
   deleteCategory: (id) => api.delete(`/admin/categories/${id}`),
+
+  //    MANAGEMENT TRANSAKSI ADMIN
+  getAdminTransactions: () => api.get('/transactions/admin/dashboard'),
+  getAdminReviews: () => api.get('/transactions/admin/reviews'),
 };

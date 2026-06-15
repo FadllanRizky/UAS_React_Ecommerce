@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import Swal from 'sweetalert2';
+import axios from 'axios'; // 🔥 WAJIB IMPORT AXIOS BUAT REFRESH DATA USER, BOS!
 
 const AuthContext = createContext();
 
@@ -17,6 +18,37 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token') || null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+
+  // ✅ FUNGSI BARU: Sinkronisasi Saldo & Profil User Terbaru ke UI Navbar
+  const refreshUser = async (forcedNewBalance = null) => {
+    if (!token || !user) return;
+
+    // ⚡ Trik Kilat: Jika dari Checkout dikirim sisa saldo manual, langsung update tanpa nembak API
+    if (forcedNewBalance !== null) {
+      const updatedData = { ...user, balance: forcedNewBalance };
+      localStorage.setItem('user', JSON.stringify(updatedData));
+      setUser(updatedData);
+      return;
+    }
+
+    try {
+      // 🔥 Tembak backend port 3000 buat ambil data user paling fresh dari DB Supabase
+      // (Sesuaikan jika nama endpoint profile lu berbeda, misal: /api/users/profile)
+      const response = await axios.get('http://localhost:3000/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const freshUserData = response.data.data || response.data.user || response.data;
+
+      if (freshUserData) {
+        localStorage.setItem('user', JSON.stringify(freshUserData));
+        setUser(freshUserData);
+        console.log("🔄 Saldo global berhasil disinkronkan, Boskuh!");
+      }
+    } catch (error) {
+      console.error("🚨 Gagal auto-refresh data user dari server:", error);
+    }
+  };
 
   // ✅ Fungsi Login Otomatis & Fleksibel
   const login = (apiResponseData) => {
@@ -72,7 +104,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, checkAuth, isAuthModalOpen, setIsAuthModalOpen, authMode, setAuthMode }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      logout, 
+      checkAuth, 
+      isAuthModalOpen, 
+      setIsAuthModalOpen, 
+      authMode, 
+      setAuthMode,
+      refreshUser // 🔥 WAJIB DIEKSPOR BIAR BISA DIPANGGIL DI CHECKOUT.JSX
+    }}>
       {children}
     </AuthContext.Provider>
   );

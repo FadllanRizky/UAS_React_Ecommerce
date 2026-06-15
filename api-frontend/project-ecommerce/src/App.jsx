@@ -3,6 +3,9 @@ import { useAuth } from './contexts/AuthContext';
 import Product from './pages/Product';
 import Loan from './pages/Loan';
 import History from './pages/History';
+import Profile from './pages/Profile';
+import api from './api/axiosInstance';
+import Checkout from './pages/Checkout'; 
 import AdminDashboard from './pages/AdminDashboard';
 import LiveChatWidget from './components/LiveChatWidget';
 import AuthModal from './components/AuthModal';
@@ -15,6 +18,9 @@ export default function App() {
   
   const [activeTab, setActiveTab] = useState(localStorage.getItem('activeTab') || 'products');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // 🔥 State Baru untuk mengontrol visibility chat panel di halaman Admin
+  const [isAdminChatVisible, setIsAdminChatVisible] = useState(false);
   
   const [favorites, setFavorites] = useState(() => {
     try {
@@ -31,6 +37,29 @@ export default function App() {
   });
   const [loanAutoSelectProduct, setLoanAutoSelectProduct] = useState(null);
 
+  // 🔥 EFFECT LISTENERS: Sinkronisasi Tombol Balas/Tutup dari AdminDashboard
+  useEffect(() => {
+    const handleOpenChat = (e) => {
+      if (e.detail?.targetUser) {
+        setIsAdminChatVisible(true);
+      } else {
+        setIsAdminChatVisible(false);
+      }
+    };
+    
+    const handleCloseChat = () => {
+      setIsAdminChatVisible(false);
+    };
+
+    window.addEventListener('trigger-mbur-chat', handleOpenChat);
+    window.addEventListener('close-mbur-chat', handleCloseChat);
+
+    return () => {
+      window.removeEventListener('trigger-mbur-chat', handleOpenChat);
+      window.removeEventListener('close-mbur-chat', handleCloseChat);
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
   }, [activeTab]);
@@ -42,6 +71,26 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('favorites', JSON.stringify(favorites));
   }, [favorites]);
+
+  // Validasi cart saat mount: update harga & stok dari API, hapus produk yang sudah tidak ada
+  useEffect(() => {
+    if (cart.length === 0) return;
+    const productIds = cart.map(item => item.id);
+    api.get('/products', { params: { ids: productIds.join(',') } })
+      .then(res => {
+        const products = res.data?.data || res.data?.products || res.data || [];
+        if (!Array.isArray(products) || products.length === 0) return;
+        setCart(prev => {
+          const updated = prev.map(item => {
+            const fresh = products.find(p => p.id === item.id);
+            if (!fresh) return null;
+            return { ...item, price: Number(fresh.price), stok: fresh.stok || fresh.stock, name: fresh.name, image_url: fresh.image_url || item.image_url };
+          }).filter(Boolean);
+          return updated;
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const handleAddToCart = (product, reqQuantity = 1) => {
     if (!checkAuth()) return;
@@ -74,31 +123,35 @@ export default function App() {
     setActiveTab('loans');
   };
 
-  const handleCheckoutViaBalance = (total) => {
-    if (user?.balance < total) {
-      Swal.fire({ title: 'Saldo Kurang!', text: 'Saldo bos tidak cukup untuk checkout. Ajukan pinjaman aja bos!', icon: 'error', background: '#111827', color: '#FFF' });
+  const handleRedirectToCheckoutPage = () => {
+    if (!checkAuth()) return;
+    
+    if (cart.length === 0) {
+      Swal.fire({ title: 'Keranjang Kosong', text: 'Belanja dulu gih bos baru ke checkout!', icon: 'info', background: '#111827', color: '#FFF' });
       return;
     }
-    Swal.fire({ title: 'Transaksi Sukses!', text: 'Barang berhasil dibeli menggunakan saldo bos!', icon: 'success', background: '#111827', color: '#FFF' });
-    setCart([]);
+
+    setIsCartOpen(false); 
+    setActiveTab('checkout'); 
   };
 
-  // 🔥 1. CEK OTORISASI: Jika user adalah admin, render interface panel kontrol eksklusif secara penuh
+  const totalAmount = cart.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0);
+
+  // 👑 1. INTERFACE MANAGEMENT DASHBOARD (ADMIN MODE)
   if (token && user?.role === 'admin') {
     return (
-      <div className="min-h-screen bg-[#0b0f19] text-slate-100 font-sans antialiased selection:bg-cyan-500/30">
-        {/* Simple Header khusus admin untuk tombol Keluar */}
-        <header className="bg-[#111827] border-b border-slate-800 px-6 py-4 flex justify-between items-center max-w-6xl mx-auto mt-4 rounded-2xl">
+      <div className="min-h-screen bg-gray-50 text-gray-800 font-sans antialiased selection:bg-blue-500/30">
+        <header className="bg-white border-b border-gray-200 shadow-sm px-6 py-4 flex justify-between items-center max-w-6xl mx-auto mt-4 rounded-2xl">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
-            <h1 className="text-sm font-black tracking-widest text-white uppercase">MBUR SYSTEM DASHBOARD v2.0</h1>
+            <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
+            <h1 className="text-sm font-black tracking-widest text-gray-800 uppercase">MBUR STORE — DASHBOARD</h1>
           </div>
           <button 
             onClick={() => {
               localStorage.clear();
               window.location.reload();
             }} 
-            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition-colors"
+            className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-colors"
           >
             LOGOUT ADMIN
           </button>
@@ -110,17 +163,23 @@ export default function App() {
 
         <AuthModal />
         
-        {/* Widget chat diletakkan di luar agar bisa dipanggil lewat trigger custom-event */}
-        <div id="mbur-chat-wrapper" className="[&_button]:hidden">
-          <LiveChatWidget />
-        </div>
+        {isAdminChatVisible && (
+          <div id="mbur-chat-wrapper" className="[&_button]:hidden animate-in fade-in slide-in-from-bottom duration-200">
+            <LiveChatWidget />
+          </div>
+        )}
+
+        <footer className="bg-white border-t border-gray-200 mt-12 py-6 text-center text-xs text-gray-400">
+          <p className="font-medium">&copy; 2026 <span className="font-black text-orange-500">MBUR STORE</span> — All rights reserved.</p>
+          <p className="mt-1">Dibangun dengan Express.js + React + Supabase</p>
+        </footer>
       </div>
     );
   }
 
-  // 👥 2. INTERFACE CUSTOMER REGULER: Tampilan toko jika status user bukan admin
+  // 👥 2. INTERFACE CUSTOMER REGULER
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 font-sans antialiased selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans antialiased selection:bg-orange-500/30">
       <Navbar 
         cartCount={cart.reduce((acc, item) => acc + (item.quantity || 1), 0)} 
         onCartClick={() => setIsCartOpen(true)} 
@@ -138,13 +197,26 @@ export default function App() {
             onToggleFavorite={handleToggleFavorite} 
           />
         )}
+        
         {activeTab === 'loans' && token && (
           <Loan 
             autoSelectProduct={loanAutoSelectProduct} 
             clearAutoSelect={() => setLoanAutoSelectProduct(null)} 
           />
         )}
+
+        {activeTab === 'checkout' && token && (
+          <Checkout 
+            cart={cart}
+            totalAmount={totalAmount}
+            clearCart={() => setCart([])}
+            setTab={setActiveTab}
+          />
+        )}
+
         {activeTab === 'history' && token && <History />}
+
+        {activeTab === 'profile' && token && <Profile />}
       </main>
 
       <AuthModal />
@@ -154,12 +226,32 @@ export default function App() {
         onClose={() => setIsCartOpen(false)} 
         cart={cart} 
         setCart={setCart} 
-        onCheckout={handleCheckoutViaBalance} 
+        onCheckout={handleRedirectToCheckoutPage} 
       />
       
       <div id="mbur-chat-wrapper" className="[&_button]:hidden">
         <LiveChatWidget />
       </div>
+
+      <footer className="bg-white border-t border-gray-200 mt-12 py-8 text-center text-xs text-gray-400">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded flex items-center justify-center shadow">
+                <span className="text-white font-black text-[10px]">M</span>
+              </div>
+              <span className="font-black text-sm tracking-tight text-gray-700">MBUR <span className="text-orange-500">STORE</span></span>
+            </div>
+            <div className="flex gap-6 text-gray-400">
+              <a href="#" className="hover:text-orange-500 transition-colors">Tentang</a>
+              <a href="#" className="hover:text-orange-500 transition-colors">Kebijakan</a>
+              <a href="#" className="hover:text-orange-500 transition-colors">Bantuan</a>
+            </div>
+          </div>
+          <hr className="border-gray-200 my-4" />
+          <p>&copy; 2026 MBUR STORE — All rights reserved. Dibangun dengan Express.js + React + Supabase</p>
+        </div>
+      </footer>
     </div>
   );
 }

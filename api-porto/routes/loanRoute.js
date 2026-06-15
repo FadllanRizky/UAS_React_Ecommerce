@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { createLoan, getMyLoans, getAllLoans, updateLoanStatus } from '../controllers/loanController.js';
+import { createLoan, getMyLoans, getAllLoans, updateLoanStatus, payLoanInstallment } from '../controllers/loanController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { adminMiddleware } from '../middleware/adminMiddleware.js'; // 🔥 Sudah terimport dengan aman bos
 
@@ -45,6 +45,8 @@ const upload = multer({
 router.post('/', authMiddleware, upload.single('id_card'), createLoan);
 router.get('/me', authMiddleware, getMyLoans);
 
+// 💳 ROUTE PEMBAYARAN CICILAN
+router.post('/pay/:id', authMiddleware, payLoanInstallment);
 
 // 👑 ROUTE SISI ADMIN (Proteksi Ganda: Wajib Login & Wajib Akun ber-Role Admin)
 router.get('/admin/all', authMiddleware, adminMiddleware, getAllLoans);

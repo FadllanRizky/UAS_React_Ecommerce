@@ -1,19 +1,37 @@
 import api from './axiosInstance';
 
-// 👤 USER → ambil loan sendiri
-export const getMyLoans = () => api.get('/loans/me');
-
-// 👤 USER → ajukan pinjaman + upload KTP
-export const createLoan = (formData) =>
-  api.post('/loans', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+// 👤 USER → Ambil loan milik sendiri
+export const getMyLoans = (token) => 
+  api.get('/loans/me', {
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) }
   });
 
-// 👑 ADMIN → ambil semua loan
-export const getAllLoansAdmin = () => api.get('/admin/loans');
+// 👤 USER → Ajukan pinjaman + upload KTP
+export const createLoan = (formData, token) =>
+  api.post('/loans', formData, {
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) }
+  });
 
-// 👑 ADMIN → approve / reject
-export const updateLoanStatusAdmin = (loanId, status) =>
-  api.put(`/admin/loans/status/${loanId}`, { status });
+// 💵 USER → Ambil Data Profil Riil (Untuk Ambil Saldo Dinamis)
+export const getUserProfile = (token) =>
+  api.get('/auth/me', {  // Sesuaikan dengan endpoint mendapatkan info user/profile kamu
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) }
+  });
+
+// ⚡ USER → Bayar Cicilan Bulanan Ke Backend
+export const payLoanInstallment = (loanId, token) =>
+  api.post(`/loans/pay/${loanId}`, {}, {
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) }
+  });
+
+// 👑 ADMIN → Ambil semua data loan
+export const getAllLoansAdmin = (token) => 
+  api.get('/admin/loans', {
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) }
+  });
+
+// 👑 ADMIN → Approve / Reject status pinjaman
+export const updateLoanStatusAdmin = (loanId, status, token) =>
+  api.put(`/admin/loans/status/${loanId}`, { status }, {
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) }
+  });

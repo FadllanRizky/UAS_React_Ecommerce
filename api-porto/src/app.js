@@ -9,6 +9,9 @@ import productRoutes from '../routes/productRoute.js';
 import loanRoutes from '../routes/loanRoute.js'; 
 import adminRoute from '../routes/adminRoute.js';
 import chatRoute from '../routes/chatRoute.js';
+import transactionRoutes from '../routes/transactionRoute.js';
+import shippingRegionRoutes from '../routes/shippingRegionRoute.js';
+import uploadRoutes from '../routes/uploadRoute.js';
 
 const app = express();
 
@@ -40,6 +43,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/admin', adminRoute);
 app.use('/api/chat', chatRoute);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/shipping-regions', shippingRegionRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // ================== ERROR HANDLER ==================
 app.use((err, req, res, next) => {

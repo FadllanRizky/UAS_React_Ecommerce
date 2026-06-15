@@ -35,7 +35,7 @@ export const authService = {
         role: finalRole, // 🔥 Aman bos, role 'admin' hasil ketikan manual bos tidak akan berubah lagi!
         credit_score: existingProfile?.credit_score || 50,
         loan_limit: existingProfile?.loan_limit || 2000000,
-        balance: existingProfile?.balance || 2000000
+        balance: existingProfile?.balance ?? 2000000
       })
       .select()
       .maybeSingle();

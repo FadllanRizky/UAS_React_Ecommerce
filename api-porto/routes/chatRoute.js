@@ -1,20 +1,21 @@
 import express from 'express';
 import chatController from '../controllers/chatController.js'; 
-// 🔑 Mengimpor nama middleware asli milik lu boskuh, tanpa merubah filenya sedikit pun!
-import { authMiddleware} from '../middleware/authMiddleware.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { adminMiddleware } from '../middleware/adminMiddleware.js';
+
 const router = express.Router();
 
 // 👑 Admin → List user yang pernah chat (GET /api/chat/admin/users)
-// Memakai 'authMiddleware' untuk cek login, dan 'adminMiddleware' untuk kunci khusus admin
 router.get('/admin/users', authMiddleware, adminMiddleware, chatController.getChatUsers);
 
-// 💬 Ambil riwayat chat (GET /api/chat) -> Mendukung query ?target_user=ID
-// Cukup pakai 'authMiddleware' karena customer biasa dan admin bisa akses rute ini
+// ✉️ Admin → Kirim pesan spesifik (POST /api/chat/admin/send)
+// 🔥 SEKARANG ROUTE INI SUDAH AKTIF DAN AMAN DIBAWAH AUTH & ADMIN MIDDLEWARE!
+router.post('/admin/send', authMiddleware, adminMiddleware, chatController.sendMessage);
+
+// 💬 Ambil riwayat chat (GET /api/chat?target_user_id=xxx)
 router.get('/', authMiddleware, chatController.getChats);
 
-// ✉️ Kirim pesan baru (POST /api/chat)
-// Cukup pakai 'authMiddleware'
+// ✉️ Customer Umum → Kirim pesan biasa (POST /api/chat)
 router.post('/', authMiddleware, chatController.sendMessage);
 
 export default router;

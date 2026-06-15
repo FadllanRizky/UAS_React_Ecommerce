@@ -4,27 +4,27 @@ import { adminService } from '../services/adminService.js';
 export const getUsers = async (req, res) => {
   try {
     const data = await adminService.getAllUsers();
-    res.json(data);
+    res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
 export const updateUserController = async (req, res) => {
   try {
     const data = await adminService.updateUser(req.params.id, req.body);
-    res.json(data);
+    res.json({ success: true, data });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
 export const deleteUserController = async (req, res) => {
   try {
     const result = await adminService.deleteUser(req.params.id);
-    res.json(result);
+    res.json({ success: true, ...result });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
@@ -32,27 +32,28 @@ export const deleteUserController = async (req, res) => {
 export const getLoans = async (req, res) => {
   try {
     const data = await adminService.getAllLoans();
-    res.json(data);
+    res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
 export const approveLoan = async (req, res) => {
   try {
+    // req.user.id dijamin aman lewat authMiddleware boskuh
     const result = await adminService.approveLoan(req.params.id, req.user.id);
-    res.json(result);
+    res.json({ success: true, ...result });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
 export const rejectLoan = async (req, res) => {
   try {
     const result = await adminService.rejectLoan(req.params.id, req.user.id);
-    res.json(result);
+    res.json({ success: true, ...result });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
@@ -60,27 +61,27 @@ export const rejectLoan = async (req, res) => {
 export const createProductController = async (req, res) => {
   try {
     const data = await adminService.createProduct(req.body);
-    res.status(201).json(data); // Diubah jadi standar HTTP 201 Created
+    res.status(201).json({ success: true, data });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
 export const updateProductController = async (req, res) => {
   try {
     const data = await adminService.updateProduct(req.params.id, req.body);
-    res.json(data);
+    res.json({ success: true, data });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
 export const deleteProductController = async (req, res) => {
   try {
     const result = await adminService.deleteProduct(req.params.id);
-    res.json(result);
+    res.json({ success: true, ...result });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
@@ -88,35 +89,35 @@ export const deleteProductController = async (req, res) => {
 export const getCategories = async (req, res) => {
   try {
     const data = await adminService.getAllCategories();
-    res.json(data);
+    res.json({ success: true, data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
 export const createCategoryController = async (req, res) => {
   try {
     const data = await adminService.createCategory(req.body);
-    res.status(201).json(data);
+    res.status(201).json({ success: true, data });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
 export const updateCategoryController = async (req, res) => {
   try {
     const data = await adminService.updateCategory(req.params.id, req.body);
-    res.json(data);
+    res.json({ success: true, data });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
 export const deleteCategoryController = async (req, res) => {
   try {
     const result = await adminService.deleteCategory(req.params.id);
-    res.json(result);
+    res.json({ success: true, ...result });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ success: false, error: err.message });
   }
 };

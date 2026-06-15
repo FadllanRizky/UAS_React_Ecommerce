@@ -19,17 +19,37 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ message: 'Sesi kedaluwarsa / token tidak valid' });
     }
 
-    // 🔥 CEK LINKING KE TABEL ADMINS
+    // 🔥 1. CEK LINKING KE TABEL ADMINS
     const { data: admin } = await supabase
       .from('admins')
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
 
-    req.user = {
-      ...user,
-      role: admin ? 'admin' : 'customer'
-    };
+    if (admin) {
+      req.user = {
+        id: user.id,
+        email: user.email,
+        role: 'admin',
+        ...admin
+      };
+    } else {
+      const { data: customer } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      req.user = {
+        id: user.id,
+        email: user.email,
+        role: 'customer',
+        ...customer
+      };
+    }
+
+    // Pastikan avatar_url selalu ada (default null)
+    if (!req.user.avatar_url) req.user.avatar_url = null;
 
     next();
   } catch (err) {
