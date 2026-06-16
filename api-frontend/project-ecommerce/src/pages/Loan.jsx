@@ -207,7 +207,7 @@ export default function Loan({ autoSelectProduct, clearAutoSelect }) {
         } catch (error) {
           Swal.fire({
             title: 'Gagal Menghubungkan!',
-            text: error.response?.data?.error || 'Terjadi gangguan alokasi atau validasi database pinjaman.',
+            text: error.response?.data?.message || error.response?.data?.error || 'Terjadi gangguan alokasi atau validasi database pinjaman.',
             icon: 'error',
             background: '#FFF', color: '#374151', confirmButtonColor: '#EF4444'
           });
@@ -284,7 +284,7 @@ export default function Loan({ autoSelectProduct, clearAutoSelect }) {
         } catch (error) {
           Swal.fire({
             title: 'Gagal Memproses!',
-            text: error.response?.data?.error || 'Ada kendala spesifikasi atau alokasi produk di backend.',
+            text: error.response?.data?.message || error.response?.data?.error || 'Ada kendala spesifikasi atau alokasi produk di backend.',
             icon: 'error',
             background: '#FFF', color: '#374151', confirmButtonColor: '#EF4444'
           });
@@ -428,7 +428,16 @@ export default function Loan({ autoSelectProduct, clearAutoSelect }) {
             <input 
               type="text" 
               value={phoneNumber} 
-              onChange={e => setPhoneNumber(e.target.value)}
+              onChange={e => {
+                const raw = e.target.value.replace(/\D/g, '');
+                if (raw === '' || raw === '0') {
+                  setPhoneNumber(raw);
+                } else if (!raw.startsWith('08')) {
+                  setPhoneNumber('08' + raw.replace(/^0+/, ''));
+                } else {
+                  setPhoneNumber(raw);
+                }
+              }}
               className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-orange-500 transition-colors text-gray-900" 
               placeholder="08xxxxxxxxxx"
             />
@@ -624,9 +633,10 @@ export default function Loan({ autoSelectProduct, clearAutoSelect }) {
                   {activeLoans.map((l) => {
                     const isCash = l.type === 'cash';
 
-                    const sisaTagihanUang = (l.remaining_amount !== undefined && l.remaining_amount !== null)
+                    const calculatedTotal = Number(l.monthly_payment) * Number(l.tenure_month || 6);
+                    const sisaTagihanUang = (l.remaining_amount !== null && l.remaining_amount !== undefined && l.remaining_amount > 0)
                       ? Number(l.remaining_amount)
-                      : Number(l.monthly_payment) * Number(l.tenure_month || 6);
+                      : calculatedTotal;
 
                     const isLunas = sisaTagihanUang <= 0;
 

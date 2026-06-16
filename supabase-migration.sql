@@ -49,3 +49,10 @@ CREATE POLICY "Allow insert chat" ON chat_messages
 -- ============================================================
 ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS client_name TEXT;
 ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS client_email TEXT;
+
+-- ============================================================
+-- MIGRATION: Tambah kolom remaining_amount & next_due_date ke loans
+-- (Diperlukan agar cicilan tidak otomatis "lunas" di frontend)
+-- ============================================================
+ALTER TABLE loans ADD COLUMN IF NOT EXISTS remaining_amount NUMERIC DEFAULT 0;
+ALTER TABLE loans ADD COLUMN IF NOT EXISTS next_due_date TIMESTAMP WITH TIME ZONE;

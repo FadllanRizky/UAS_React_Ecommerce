@@ -177,6 +177,101 @@ export default function App() {
     );
   }
 
+  const openFooterModal = (page) => {
+    const content = {
+      tentang: {
+        title: 'Tentang MBUR STORE',
+        html: `<div class="text-left text-sm space-y-4 text-gray-600">
+          <div class="flex items-center gap-3 pb-3 border-b border-gray-200">
+            <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow">
+              <span class="text-white font-black text-sm">M</span>
+            </div>
+            <div>
+              <p class="font-black text-base text-gray-900">MBUR STORE</p>
+              <p class="text-[10px] text-gray-400">Solusi Belanja & Pembiayaan Digital</p>
+            </div>
+          </div>
+          <p>MBUR STORE adalah platform e-commerce terintegrasi yang menyediakan layanan belanja online sekaligus fasilitas pembiayaan digital (pinjaman kredit) untuk memenuhi kebutuhan masyarakat Indonesia.</p>
+          <p>Didirikan pada tahun 2024, MBUR STORE berkomitmen untuk memberikan pengalaman berbelanja yang aman, nyaman, dan terjangkau dengan sistem cicilan bunga ringan tanpa kartu kredit.</p>
+          <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+            <p class="font-bold text-gray-900 text-xs uppercase tracking-wider">Visi & Misi</p>
+            <p><span class="font-semibold text-gray-900">Visi:</span> Menjadi platform pembiayaan digital terdepan di Indonesia yang inklusif dan terpercaya.</p>
+            <p><span class="font-semibold text-gray-900">Misi:</span> Memberikan akses keuangan yang mudah, cepat, dan transparan bagi seluruh lapisan masyarakat.</p>
+          </div>
+          <div class="text-[10px] text-gray-400 pt-2 border-t border-gray-100">
+            <p>PT. Mbur Store Digital Indonesia</p>
+            <p>Terdaftar dan diawasi oleh OJK</p>
+          </div>
+        </div>`
+      },
+      kebijakan: {
+        title: 'Kebijakan & Ketentuan',
+        html: `<div class="text-left text-sm space-y-4 text-gray-600">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p class="font-bold text-blue-700 text-xs uppercase tracking-wider">Kebijakan Privasi</p>
+            <p class="mt-2 text-gray-600">Kami menghormati privasi Anda. Data pribadi seperti nama, NIK, nomor telepon, dan dokumen KTP hanya digunakan untuk verifikasi dan pemrosesan pinjaman. Data tidak akan dibagikan kepada pihak ketiga tanpa persetujuan Anda.</p>
+          </div>
+          <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+            <p class="font-bold text-orange-600 text-xs uppercase tracking-wider">Syarat & Ketentuan Pinjaman</p>
+            <ul class="mt-2 space-y-1.5 text-gray-600 list-disc list-inside">
+              <li>Warga Negara Indonesia minimal 21 tahun</li>
+              <li>Memiliki KTP elektronik (e-KTP) yang masih berlaku</li>
+              <li>Maksimal 3 pinjaman aktif/pending dalam satu waktu</li>
+              <li>Bunga flat 5% per tenor (bukan per bulan)</li>
+              <li>Tenor tersedia: 3, 6, atau 12 bulan</li>
+              <li>Denda keterlambatan: 2% dari total angsuran per hari</li>
+            </ul>
+          </div>
+          <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <p class="font-bold text-gray-900 text-xs uppercase tracking-wider">Kebijakan Pengembalian Barang</p>
+            <p class="mt-2 text-gray-600">Barang yang telah disetujui pembiayaannya tidak dapat dikembalikan atau ditukar kecuali terdapat cacat produksi. Klaim garansi dapat diajukan maksimal 7 hari setelah barang diterima.</p>
+          </div>
+        </div>`
+      },
+      bantuan: {
+        title: 'Pusat Bantuan (FAQ)',
+        html: `<div class="text-left text-sm space-y-4 text-gray-600">
+          <div class="space-y-3">
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <p class="font-bold text-gray-900 text-xs uppercase tracking-wider mb-2">❓ Bagaimana cara mengajukan pinjaman?</p>
+              <p class="text-gray-600">Lengkapi data diri (nama, NIK, nomor telepon), upload foto KTP, pilih jenis pembiayaan (cash/product), lalu submit. Admin akan memverifikasi dan mengirim notifikasi ke email Anda.</p>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <p class="font-bold text-gray-900 text-xs uppercase tracking-wider mb-2">❓ Berapa lama proses persetujuan?</p>
+              <p class="text-gray-600">Proses verifikasi admin biasanya memakan waktu 1x24 jam. Anda akan menerima email notifikasi setelah status pinjaman diperbarui.</p>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <p class="font-bold text-gray-900 text-xs uppercase tracking-wider mb-2">❓ Bagaimana cara membayar cicilan?</p>
+              <p class="text-gray-600">Masuk ke halaman Kredit, cari kontrak pinjaman aktif Anda, klik tombol "Bayar Sekarang". Pembayaran akan dipotong dari saldo akun MBUR Anda.</p>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <p class="font-bold text-gray-900 text-xs uppercase tracking-wider mb-2">❓ Bagaimana cara mengisi saldo?</p>
+              <p class="text-gray-600">Saat ini pengisian saldo dapat dilakukan melalui transfer bank ke rekening virtual account yang tertera di halaman Profil. Saldo akan masuk otomatis setelah pembayaran terverifikasi.</p>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <p class="font-bold text-gray-900 text-xs uppercase tracking-wider mb-2">❓ Hubungi Customer Service</p>
+              <p class="text-gray-600">Email: support@mburstore.id<br/>WhatsApp: 0811-2345-6789<br/>Jam Operasional: Senin - Sabtu, 08:00 - 20:00 WIB</p>
+            </div>
+          </div>
+        </div>`
+      }
+    }[page];
+
+    if (content) {
+      Swal.fire({
+        title: content.title,
+        html: content.html,
+        icon: 'info',
+        background: '#FFF',
+        color: '#374151',
+        confirmButtonColor: '#f97316',
+        confirmButtonText: 'Tutup',
+        width: 600,
+        customClass: { popup: 'border border-gray-200 rounded-2xl' }
+      });
+    }
+  };
+
   // 👥 2. INTERFACE CUSTOMER REGULER
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans antialiased selection:bg-orange-500/30">
@@ -243,9 +338,9 @@ export default function App() {
               <span className="font-black text-sm tracking-tight text-gray-700">MBUR <span className="text-orange-500">STORE</span></span>
             </div>
             <div className="flex gap-6 text-gray-400">
-              <a href="#" className="hover:text-orange-500 transition-colors">Tentang</a>
-              <a href="#" className="hover:text-orange-500 transition-colors">Kebijakan</a>
-              <a href="#" className="hover:text-orange-500 transition-colors">Bantuan</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); openFooterModal('tentang'); }} className="hover:text-orange-500 transition-colors">Tentang</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); openFooterModal('kebijakan'); }} className="hover:text-orange-500 transition-colors">Kebijakan</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); openFooterModal('bantuan'); }} className="hover:text-orange-500 transition-colors">Bantuan</a>
             </div>
           </div>
           <hr className="border-gray-200 my-4" />
