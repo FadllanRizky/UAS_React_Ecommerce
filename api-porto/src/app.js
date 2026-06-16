@@ -16,11 +16,26 @@ import uploadRoutes from '../routes/uploadRoute.js';
 const app = express();
 
 // ================== CORS ==================
+const allowedOrigins = [
+  'http://localhost:5173', 
+  'http://localhost:5174', // Cadangan kalau port lokal geser
+  process.env.FRONTEND_URL // 👈 Menampung alamat Vercel lu nanti boskuh
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Mengizinkan request tanpa origin (seperti Postman atau internal system)
+    if (!origin) return callback(null, true);
+    
+    // Jika origin ada di dalam daftar, izinkan!
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Ditolak oleh sistem keamanan CORS Boskuh!'));
+    }
+  },
   credentials: true
 }));
-
 // ================== BODY PARSER ==================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
