@@ -225,7 +225,7 @@ export default function History() {
                 <button
                   type="submit"
                   disabled={submittingReview}
-                  className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl hover:opacity-90 active:scale-95 disabled:opacity-50"
+                  className="bg-linear-to-r from-amber-500 to-orange-600 text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl hover:opacity-90 active:scale-95 disabled:opacity-50"
                 >
                   {submittingReview ? 'Mengirim...' : 'Kirim Ulasan'}
                 </button>

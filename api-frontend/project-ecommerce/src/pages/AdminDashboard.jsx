@@ -110,9 +110,9 @@ export default function AdminDashboard() {
       html: `
         <div class="flex flex-col gap-2 text-left font-sans">
           <label class="text-xs text-slate-400">Saldo Dompet (Rp)</label>
-          <input id="swal-balance" type="number" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${u.balance || 0}">
+          <input id="swal-balance" type="number" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${u.balance || 0}">
           <label class="text-xs text-slate-400 mt-2">Limit Maksimal Pinjaman (Rp)</label>
-          <input id="swal-limit" type="number" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${u.loan_limit || 0}">
+          <input id="swal-limit" type="number" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${u.loan_limit || 0}">
         </div>
       `,
       background: '#111827', color: '#fff', confirmButtonColor: '#06b6d4', showCancelButton: true,
@@ -152,30 +152,30 @@ export default function AdminDashboard() {
       html: `
         <div class="flex flex-col gap-2 text-left font-sans">
           <label class="text-xs text-slate-400">Kategori Produk</label>
-          <select id="p-category" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700">
+          <select id="p-category" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700">
             <option value="">-- Pilih Kategori --</option>
             ${categoryOptions}
           </select>
           <label class="text-xs text-slate-400 mt-2">Nama Produk</label>
-          <input id="p-name" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" placeholder="Contoh: Asus ROG Zephyrus">
+          <input id="p-name" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" placeholder="Contoh: Asus ROG Zephyrus">
           <label class="text-xs text-slate-400 mt-2">Slug URL (Otomatis jika kosong)</label>
-          <input id="p-slug" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" placeholder="contoh: asus-rog-zephyrus">
+          <input id="p-slug" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" placeholder="contoh: asus-rog-zephyrus">
           <label class="text-xs text-slate-400 mt-2">Merek / Brand</label>
-          <input id="p-brand" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" placeholder="Contoh: ASUS">
+          <input id="p-brand" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" placeholder="Contoh: ASUS">
           <div class="grid grid-cols-2 gap-2 mt-2">
             <div>
               <label class="text-xs text-slate-400">Harga (Rp)</label>
-              <input id="p-price" type="number" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" placeholder="0">
+              <input id="p-price" type="number" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" placeholder="0">
             </div>
             <div>
               <label class="text-xs text-slate-400">Jumlah Stok</label>
-              <input id="p-stok" type="number" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" placeholder="0">
+              <input id="p-stok" type="number" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" placeholder="0">
             </div>
           </div>
           <label class="text-xs text-slate-400 mt-2">URL Gambar Produk</label>
-          <input id="p-img" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" placeholder="https://...">
+          <input id="p-img" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" placeholder="https://...">
           <label class="text-xs text-slate-400 mt-2">Deskripsi Keterangan</label>
-          <textarea id="p-desc" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700 !h-20 p-2" placeholder="Spesifikasi produk..."></textarea>
+          <textarea id="p-desc" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700 h-20! p-2" placeholder="Spesifikasi produk..."></textarea>
         </div>
       `,
       background: '#111827', color: '#fff', confirmButtonColor: '#10b981', showCancelButton: true,
@@ -214,30 +214,30 @@ export default function AdminDashboard() {
       html: `
         <div class="flex flex-col gap-2 text-left font-sans">
           <label class="text-xs text-slate-400">Kategori Produk</label>
-          <select id="p-category" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700">
+          <select id="p-category" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700">
             <option value="">-- Pilih Kategori --</option>
             ${categoryOptions}
           </select>
           <label class="text-xs text-slate-400 mt-2">Nama Produk</label>
-          <input id="p-name" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${p.name || ''}">
+          <input id="p-name" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${p.name || ''}">
           <label class="text-xs text-slate-400 mt-2">Slug URL</label>
-          <input id="p-slug" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${p.slug || ''}">
+          <input id="p-slug" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${p.slug || ''}">
           <label class="text-xs text-slate-400 mt-2">Merek / Brand</label>
-          <input id="p-brand" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${p.brand || ''}">
+          <input id="p-brand" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${p.brand || ''}">
           <div class="grid grid-cols-2 gap-2 mt-2">
             <div>
               <label class="text-xs text-slate-400">Harga (Rp)</label>
-              <input id="p-price" type="number" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${p.price || 0}">
+              <input id="p-price" type="number" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${p.price || 0}">
             </div>
             <div>
               <label class="text-xs text-slate-400">Jumlah Stok</label>
-              <input id="p-stok" type="number" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${p.stok || p.stock || 0}">
+              <input id="p-stok" type="number" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${p.stok || p.stock || 0}">
             </div>
           </div>
           <label class="text-xs text-slate-400 mt-2">URL Gambar Produk</label>
-          <input id="p-img" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${p.image_url || ''}">
+          <input id="p-img" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${p.image_url || ''}">
           <label class="text-xs text-slate-400 mt-2">Deskripsi Keterangan</label>
-          <textarea id="p-desc" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700 !h-20 p-2">${p.description || ''}</textarea>
+          <textarea id="p-desc" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700 h-20! p-2">${p.description || ''}</textarea>
         </div>
       `,
       background: '#111827', color: '#fff', showCancelButton: true,
@@ -348,9 +348,9 @@ export default function AdminDashboard() {
       html: `
         <div class="flex flex-col gap-2 text-left font-sans">
           <label class="text-xs text-slate-400">Nama Wilayah</label>
-          <input id="r-name" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" placeholder="Contoh: Kalimantan">
+          <input id="r-name" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" placeholder="Contoh: Kalimantan">
           <label class="text-xs text-slate-400 mt-2">Estimasi Pengiriman</label>
-          <input id="r-est" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" placeholder="Contoh: 6-8 Hari">
+          <input id="r-est" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" placeholder="Contoh: 6-8 Hari">
         </div>
       `,
       background: '#111827', color: '#fff', confirmButtonColor: '#10b981', showCancelButton: true,
@@ -375,9 +375,9 @@ export default function AdminDashboard() {
       html: `
         <div class="flex flex-col gap-2 text-left font-sans">
           <label class="text-xs text-slate-400">Nama Wilayah</label>
-          <input id="r-name" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${r.name}">
+          <input id="r-name" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${r.name}">
           <label class="text-xs text-slate-400 mt-2">Estimasi Pengiriman</label>
-          <input id="r-est" class="swal2-input !m-0 !w-full bg-gray-50 text-gray-800 border-slate-700" value="${r.estimated_delivery}">
+          <input id="r-est" class="swal2-input m-0! w-full! bg-gray-50 text-gray-800 border-slate-700" value="${r.estimated_delivery}">
         </div>
       `,
       background: '#111827', color: '#fff', showCancelButton: true,
@@ -533,7 +533,7 @@ export default function AdminDashboard() {
                       onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                     />
                   ) : null}
-                  <div className={`w-20 h-20 bg-gradient-to-tr from-cyan-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-cyan-950/50 shrink-0 border border-cyan-500/30 ${user?.avatar_url ? 'hidden' : ''}`}>
+                  <div className={`w-20 h-20 bg-linear-to-tr from-cyan-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-cyan-950/50 shrink-0 border border-cyan-500/30 ${user?.avatar_url ? 'hidden' : ''}`}>
                     {user?.full_name ? user.full_name.substring(0, 2).toUpperCase() : 'AM'}
                   </div>
                   <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => document.getElementById('admin-avatar-input')?.click()}>
@@ -570,7 +570,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Card Saldo Admin */}
-              <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-gray-200 p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden shadow-xl">
+              <div className="bg-linear-to-br from-slate-900 to-slate-950 border border-gray-200 p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-4 text-emerald-500/10 pointer-events-none">
                   <Wallet size={80} />
                 </div>
@@ -899,7 +899,7 @@ export default function AdminDashboard() {
               <p className="text-xs text-slate-400">Notifikasi interaksi pertanyaan spesifikasi produk dari customer.</p>
             </div>
 
-            <div className={`grid gap-4 ${selectedChatUser ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'} lg:h-[580px] items-stretch`}>
+            <div className={`grid gap-4 ${selectedChatUser ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'} lg:h-145 items-stretch`}>
 
               {/* ==================== KOLOM KIRI: Daftar Antrean Chat User ==================== */}
               <div className={`${selectedChatUser ? 'lg:col-span-1' : 'w-full'} flex flex-col bg-white/40 border border-gray-200/80 rounded-2xl p-3 h-full`}>
@@ -907,7 +907,7 @@ export default function AdminDashboard() {
                   Antrean Pesan ({chatUsers.length})
                 </span>
 
-                <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar max-h-[300px] lg:max-h-full">
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar max-h-75 lg:max-h-full">
                   {chatUsers.length === 0 ? (
                     <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl text-xs text-slate-500 bg-slate-950/20">
                       Belum ada pesan baru masuk.
@@ -951,7 +951,7 @@ export default function AdminDashboard() {
 
               {/* ==================== KOLOM KANAN: Jendela Room Percakapan Aktif ==================== */}
               {selectedChatUser ? (
-                <div className="lg:col-span-2 border border-gray-200/80 bg-[#0f172a]/80 backdrop-blur-md rounded-2xl p-4 flex flex-col h-[480px] lg:h-full justify-between animate-in slide-in-from-right duration-300 shadow-2xl relative overflow-hidden">
+                <div className="lg:col-span-2 border border-gray-200/80 bg-[#0f172a]/80 backdrop-blur-md rounded-2xl p-4 flex flex-col h-120 lg:h-full justify-between animate-in slide-in-from-right duration-300 shadow-2xl relative overflow-hidden">
 
                   {/* Header Jendela Chat Room */}
                   <div className="pb-3 border-b border-gray-200/80 flex justify-between items-center bg-transparent shrink-0">
@@ -990,7 +990,7 @@ export default function AdminDashboard() {
                         return (
                           <div key={msg.id || idx} className={`flex ${isFromAdmin ? 'justify-end ml-auto' : 'justify-start'} max-w-[85%]`}>
                             <div className={`rounded-2xl p-3 shadow-md ${isFromAdmin
-                              ? 'bg-gradient-to-br from-cyan-600 to-cyan-800 text-white rounded-tr-none shadow-cyan-950/20'
+                              ? 'bg-linear-to-br from-cyan-600 to-cyan-800 text-white rounded-tr-none shadow-cyan-950/20'
                               : 'bg-white border border-gray-200 rounded-tl-none'
                               }`}>
                               <p className={`text-xs leading-relaxed ${isFromAdmin ? 'text-cyan-50 font-medium' : 'text-slate-200'}`}>
@@ -1026,7 +1026,7 @@ export default function AdminDashboard() {
 
                 </div>
               ) : (
-                <div className="hidden lg:flex lg:col-span-2 border border-gray-200/60 bg-white/10 rounded-2xl p-8 flex-col items-center justify-center text-center text-slate-500 min-h-[350px]">
+                <div className="hidden lg:flex lg:col-span-2 border border-gray-200/60 bg-white/10 rounded-2xl p-8 flex-col items-center justify-center text-center text-slate-500 min-h-87.5">
                   <MessageSquare className="text-slate-700 mb-2 animate-bounce" size={28} />
                   <p className="text-xs font-bold text-slate-400">Belum Ada Chat Terpilih</p>
                   <p className="text-[10px] text-slate-500 max-w-xs mt-0.5">Pilih salah satu antrean customer di sebelah kiri untuk memulai obrolan live chat, boskuh!</p>
@@ -1066,7 +1066,7 @@ export default function AdminDashboard() {
                             <span className="text-[10px] text-slate-500 ml-1 font-mono">({r.rating}/5)</span>
                           </span>
                         </td>
-                        <td className="p-3.5 text-slate-300 max-w-[250px] truncate">{r.comment || '-'}</td>
+                        <td className="p-3.5 text-slate-300 max-w-62.5 truncate">{r.comment || '-'}</td>
                         <td className="p-3.5 text-slate-500 font-mono text-[10px]">
                           {r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
                         </td>

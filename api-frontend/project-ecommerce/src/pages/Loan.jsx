@@ -472,7 +472,7 @@ export default function Loan({ autoSelectProduct, clearAutoSelect }) {
 
           <div>
             <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1.5">Upload Foto KTP Asli</label>
-            <div className="border border-dashed border-gray-200 hover:border-orange-500/40 rounded-xl p-2.5 relative bg-gray-50/50 transition-colors flex items-center justify-center cursor-pointer min-h-[46px]">
+            <div className="border border-dashed border-gray-200 hover:border-orange-500/40 rounded-xl p-2.5 relative bg-gray-50/50 transition-colors flex items-center justify-center cursor-pointer min-h-11.5">
               <input 
                 type="file" 
                 accept="image/*" 
@@ -535,7 +535,7 @@ export default function Loan({ autoSelectProduct, clearAutoSelect }) {
 
           <button 
             onClick={handleCash}
-            className="w-full mt-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+            className="w-full mt-6 py-3.5 bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
           >
             Cairkan Dana Sekarang <ArrowUpRight size={16} />
           </button>
@@ -596,7 +596,7 @@ export default function Loan({ autoSelectProduct, clearAutoSelect }) {
 
           <button 
             onClick={handleProduct}
-            className="w-full mt-6 py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+            className="w-full mt-6 py-3.5 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2"
           >
             <Package size={16} /> Ajukan Pinjam Barang
           </button>
@@ -667,7 +667,7 @@ export default function Loan({ autoSelectProduct, clearAutoSelect }) {
                           <button
                             onClick={() => handleBayarCicilan(l)}
                             disabled={isLunas}
-                            className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-lg group ${isLunas ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-500 hover:to-orange-500 text-white'}`}
+                            className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-lg group ${isLunas ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-linear-to-r from-orange-600 to-orange-600 hover:from-orange-500 hover:to-orange-500 text-white'}`}
                           >
                             {isLunas ? 'Lunas 🎉' : 'Bayar Sekarang'}
                             {!isLunas && <ArrowUpRight size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}

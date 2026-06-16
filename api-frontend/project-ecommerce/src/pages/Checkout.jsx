@@ -169,7 +169,7 @@ export default function Checkout({ cart, totalAmount, clearCart, setTab }) {
                         <button
                             onClick={handleProcessCheckout}
                             disabled={loading || cart.length === 0}
-                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 disabled:bg-gray-100 disabled:text-gray-500 text-white font-black uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-200 active:scale-95"
+                            className="w-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 disabled:bg-gray-100 disabled:text-gray-500 text-white font-black uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-200 active:scale-95"
                         >
                             {loading ? (
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

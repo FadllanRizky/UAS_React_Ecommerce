@@ -183,7 +183,7 @@ export default function App() {
         title: 'Tentang MBUR STORE',
         html: `<div class="text-left text-sm space-y-4 text-gray-600">
           <div class="flex items-center gap-3 pb-3 border-b border-gray-200">
-            <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow">
+            <div class="w-10 h-10 bg-linear-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow">
               <span class="text-white font-black text-sm">M</span>
             </div>
             <div>
@@ -332,7 +332,7 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-orange-600 rounded flex items-center justify-center shadow">
+              <div className="w-6 h-6 bg-linear-to-br from-orange-500 to-orange-600 rounded flex items-center justify-center shadow">
                 <span className="text-white font-black text-[10px]">M</span>
               </div>
               <span className="font-black text-sm tracking-tight text-gray-700">MBUR <span className="text-orange-500">STORE</span></span>

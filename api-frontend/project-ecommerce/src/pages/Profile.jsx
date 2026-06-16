@@ -104,7 +104,7 @@ export default function Profile() {
                   onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                 />
               ) : null}
-              <div className={`w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-200 ${p.avatar_url ? 'hidden' : ''}`}>
+              <div className={`w-16 h-16 bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-orange-200 ${p.avatar_url ? 'hidden' : ''}`}>
                 {(p.full_name || 'U').substring(0, 2).toUpperCase()}
               </div>
               <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -186,7 +186,7 @@ export default function Profile() {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-5 shadow-xl">
+          <div className="bg-linear-to-br from-white to-gray-50 border border-gray-200 rounded-2xl p-5 shadow-xl">
             <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase mb-3">
               <Wallet size={14} /> Saldo Dompet
             </div>

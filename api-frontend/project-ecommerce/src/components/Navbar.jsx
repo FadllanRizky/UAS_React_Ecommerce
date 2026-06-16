@@ -15,7 +15,7 @@ export default function Navbar({ cartCount, onCartClick, currentTab, setTab, fav
         className="flex items-center gap-2 cursor-pointer group" 
         onClick={() => setTab(isAdmin ? 'admin' : 'products')}
       >
-        <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:rotate-12 transition-transform">
+        <div className="w-8 h-8 bg-linear-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:rotate-12 transition-transform">
           <span className="text-white font-black text-xs">M</span>
         </div>
         <span className="text-xl font-black tracking-tighter">
@@ -74,7 +74,7 @@ export default function Navbar({ cartCount, onCartClick, currentTab, setTab, fav
         {!token ? (
           <button 
             onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); }}
-            className="flex items-center gap-2 text-[11px] uppercase tracking-widest font-black bg-gradient-to-r from-orange-500 to-orange-600 hover:scale-105 text-white px-5 py-2.5 rounded-xl transition-all active:scale-95 shadow-xl shadow-orange-500/20"
+            className="flex items-center gap-2 text-[11px] uppercase tracking-widest font-black bg-linear-to-r from-orange-500 to-orange-600 hover:scale-105 text-white px-5 py-2.5 rounded-xl transition-all active:scale-95 shadow-xl shadow-orange-500/20"
           >
             <LogIn size={15} /> Masuk
           </button>
@@ -87,7 +87,7 @@ export default function Navbar({ cartCount, onCartClick, currentTab, setTab, fav
                   {user?.avatar_url ? (
                     <img src={user.avatar_url} alt="" className="w-5 h-5 rounded-lg object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
                   ) : (
-                    <div className="w-5 h-5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-[8px]">
+                    <div className="w-5 h-5 bg-linear-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-[8px]">
                       {(user?.full_name || 'U').substring(0, 1).toUpperCase()}
                     </div>
                   )}
@@ -127,7 +127,7 @@ export default function Navbar({ cartCount, onCartClick, currentTab, setTab, fav
               </div>
             )}
 
-            <div className="h-6 w-[1px] bg-gray-200 mx-1"></div>
+            <div className="h-6 w-px bg-gray-200 mx-1"></div>
 
             <button 
               onClick={logout} 

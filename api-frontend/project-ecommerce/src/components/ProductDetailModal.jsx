@@ -50,7 +50,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
           <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-white hover:bg-gray-100 rounded-full text-gray-500 hover:text-gray-900 transition-colors z-10">
             <X size={18} />
           </button>
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white/40 to-transparent">
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-linear-to-t from-white via-white/40 to-transparent">
             <span className="text-xs uppercase tracking-widest font-extrabold px-2.5 py-1 bg-orange-50 text-orange-500 rounded-md border border-orange-200">
               {displayBrand}
             </span>
@@ -118,7 +118,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
           <div className="pt-4 border-t border-gray-200 flex gap-3">
             <button 
               onClick={() => { onAddToCart(product, quantity); onClose(); }}
-              className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-200"
+              className="flex-1 py-3 bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-200"
             >
               <ShoppingCart size={16} /> Masukkan Keranjang ({quantity}x)
             </button>
